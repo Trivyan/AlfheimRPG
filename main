@@ -1,0 +1,3574 @@
+#include <stdio.h>
+#include <locale.h>
+#include <string.h>
+#include <math.h>
+#include <stdlib.h>
+#include <ctype.h>
+#include <time.h>
+#include <stdio_ext.h>
+#include <stdbool.h>
+//#include <conio.h> // versão windows
+//#include <ncurses.h> // versão linux
+
+void fTratarString (char *stringg)
+{
+  int tamanhostring;
+  int contQLinha = 0;
+  int cont = 0;
+  int tamanhoPalavra = 0;
+  tamanhostring = strlen(stringg);
+
+  while(cont < tamanhostring)
+  {
+
+
+    if(contQLinha < 64)
+    {
+      printf("%c", stringg[cont]);
+      cont++;
+      contQLinha++;
+    }
+
+    if (contQLinha >= 64)
+    {
+      while(isspace(stringg[cont+tamanhoPalavra])==0 )
+      {
+        tamanhoPalavra++;
+      }
+
+      if(80 - (contQLinha+tamanhoPalavra) <0)
+        {
+          printf("\n");
+          tamanhoPalavra = 0;
+          contQLinha = 0;
+
+        }
+
+      else if(80 - (contQLinha+tamanhoPalavra) >= 0)
+      {
+        printf("%c", stringg[cont]);
+        cont++;
+        tamanhoPalavra = 0;
+        contQLinha++;
+
+      }
+    }
+  }
+}
+
+typedef struct
+{
+  bool bolAdquirido;
+  char strNome[33];
+
+  int intVidaRestaurada;
+  int intManaRestaurada;
+
+  int intCustoMana;
+  int intDanoFisico;
+  int intDanoMagico;
+  int intChanceDeAcerto;
+
+}tHabilidades;
+
+void LimparTela(int plataforma)
+{
+  if(1){printf("\e[H\e[2J");}
+  //if(2){System("cls");} //comando para versão Windows (obrigatorio biblioteca)
+}
+
+char fVerificarDigito(char strEntradaJogador)
+{
+  __fpurge(stdin);
+  scanf("%c", &strEntradaJogador);
+  while( isdigit(strEntradaJogador) == 0 )
+      {
+        printf("[Comando inválido, não é um digito]\n");
+        __fpurge(stdin);
+        printf("Insira um comando válido: ");
+        scanf("%c", &strEntradaJogador);
+      }
+  return strEntradaJogador;
+}
+
+int GerarValorAleatorio(int x, int y)
+{
+  int temp = y - x;
+  int z = rand() % temp;
+  z = z + x;
+  return z;
+}
+
+typedef enum
+{
+  Arma,
+  Armadura,
+  Acessorio
+}tItemCategoria;
+
+typedef enum
+{
+  Comum,
+  Raro,
+  Epico,
+  Lendario
+}tItemRaridade;
+
+typedef struct
+{
+  char strNome[33];
+  tItemCategoria enmCategoria;
+  tItemRaridade enmRaridade;
+  bool bolAdquirido;
+  bool bolEquipado;
+  int intVida;
+  int intMana;
+  int intArmadura;
+  int intResistenciaMagica;
+  int intChanceCritico;
+  int intChanceEvasao;
+  int intAtaqueFisico;
+  int intAtaqueMagico;
+  int intDanoFisicoExtra;
+  int intDanoMagicoExtra;
+}tItem;
+
+void fCT()
+{
+  printf("[CONTINUAR]\n");
+  __fpurge(stdin);
+  getchar();
+  LimparTela(1);
+  __fpurge(stdin);
+
+}
+
+typedef enum
+{
+    MONSTER_ORC,
+    MONSTER_GOBLIN,
+    MONSTER_CRAB,
+    MONSTER_ELF,
+    MONSTER_BOAR,
+    MONSTER_MINOTAUR
+}tRacaMonstro;
+
+typedef enum
+{
+  VILA_VARBEL,
+  ENTRADA_BOSQUE_LAMURIANTE,
+  CAMINHO_ARDILOSO,
+  RAVINA_ECOANTE,
+  FARM_GERF,
+  REGION_ECOANTERAVINE,
+
+}tRegiao;
+
+typedef struct
+{
+  char strNome[33];
+  tRacaMonstro tipo;
+  tRegiao regiao;
+  int intVida;
+  int intMana;
+  int intAtaqueFisico;
+  int intAtaqueMagico;
+  int intChanceEvasao;
+  int intChanceCritico;
+  int intArmadura;
+  int intResistenciaMagica;
+  int intDanoFisicoExtra;
+  int intDanoMagicoExtra;
+  int intReducaoDanoFisicoExtra;
+  int intReducaoDanoMagicoExtra;
+
+  int intExperienciaMorte;
+
+}tMonstros;
+
+
+typedef struct
+{
+  int intVida;
+  int intMana;
+  int intArmadura;
+  int intResistenciaMagica;
+  int intAtaqueFisico;
+  int intAtaqueMagico;
+  int intChanceEvasao;
+  int intChanceCritico;
+  int intDanoFisExtra;
+  int intDanoMagExtra;
+
+  int intIVida;
+  int intIMana;
+  int intIArmadura;
+  int intIResistenciaMagica;
+  int intIAtaqueFisico;
+  int intIAtaqueMagico;
+  int intIChanceEvasao;
+  int intIChanceCritico;
+
+  int intAtributos[8];
+  int intAreaAtual;
+  int intLevel;
+  int intExperiencia;
+  int intExperienciaNecessaria;
+
+  int intSAVida;
+  int intSAMana;
+  int intSAArmadura;
+  int intSAResistenciaMagica;
+  int intSAAtaqueFisico;
+  int intSAAtaqueMagico;
+  int intSAChanceEvasao;
+  int intSAChanceCritico;
+  int intSADanoFisExtra;
+  int intSADanoMagExtra;
+
+}tPlayer;
+
+
+void fRestaurarTodosStatus(tPlayer *jogador, tItem *arrayDeItens)
+{
+  jogador->intSAVida = jogador->intVida;
+  jogador->intSAMana = jogador->intMana;
+  jogador->intSAArmadura = jogador->intArmadura;
+  jogador->intSAResistenciaMagica = jogador->intResistenciaMagica;
+  jogador->intSAAtaqueFisico = jogador->intAtaqueFisico;
+  jogador->intSAAtaqueMagico = jogador->intAtaqueMagico;
+  jogador->intSAAtaqueMagico = jogador->intAtaqueMagico;
+  jogador->intSAChanceEvasao = jogador->intChanceEvasao;
+  jogador->intSAChanceCritico = jogador->intChanceCritico;
+
+}
+
+void fAtualizarStatus(tPlayer *jogador, tItem *arrayDeItens)
+{
+  jogador->intIAtaqueFisico = 0;
+  jogador->intIVida = 0;
+  jogador->intIMana = 0;
+  jogador->intIArmadura = 0;
+  jogador->intIResistenciaMagica = 0;
+  jogador->intIAtaqueMagico = 0;
+  jogador->intIChanceEvasao = 0;
+  jogador->intIChanceCritico = 0;
+  jogador->intSADanoFisExtra = 0;
+  jogador->intSADanoMagExtra = 0;
+
+  int contador;
+
+  for(contador = 0; contador <= 4; contador++)
+  {
+    if(arrayDeItens[contador].bolEquipado == true)
+    {
+      jogador->intIAtaqueFisico = jogador->intIAtaqueFisico + arrayDeItens[contador].intAtaqueFisico;
+      jogador->intIVida += arrayDeItens[contador].intVida;
+      jogador->intIMana += arrayDeItens[contador].intMana;
+      jogador->intIArmadura += arrayDeItens[contador].intArmadura;
+      jogador->intIResistenciaMagica += arrayDeItens[contador].intResistenciaMagica;
+      jogador->intIAtaqueMagico += arrayDeItens[contador].intAtaqueMagico;
+      jogador->intIChanceEvasao += arrayDeItens[contador].intChanceEvasao;
+      jogador->intIChanceCritico += arrayDeItens[contador].intChanceCritico;
+      jogador->intSADanoFisExtra += arrayDeItens[contador].intDanoFisicoExtra;
+      jogador->intSADanoMagExtra += arrayDeItens[contador].intDanoMagicoExtra;
+    }
+  }
+
+
+  //----------------------------------------------------------------------------//
+  jogador->intVida = (jogador->intAtributos[1]*12) + jogador->intIVida;
+  jogador->intMana = (jogador->intAtributos[3]*12) + jogador->intIMana;
+  jogador->intArmadura = (jogador->intAtributos[2]*2) + jogador->intIArmadura;
+  jogador->intResistenciaMagica = (jogador->intAtributos[3]*3) + jogador->intIResistenciaMagica;
+  jogador->intAtaqueFisico = (jogador->intAtributos[2]*3) + jogador->intIAtaqueFisico;
+  jogador->intAtaqueMagico = (jogador->intAtributos[3]*3) + jogador->intIAtaqueMagico;
+  jogador->intChanceEvasao = (jogador->intAtributos[4]*3) + jogador->intIChanceEvasao;
+  if(jogador->intChanceEvasao > 50)
+  {
+    jogador->intChanceEvasao = 50;
+  }
+  jogador->intChanceCritico = (jogador->intAtributos[5]*4) + jogador->intChanceCritico;
+  if(jogador->intChanceCritico > 50)
+  {
+    jogador->intChanceCritico = 50;
+  }
+
+}
+
+
+void fGanharExperienciaMonstro(tPlayer *jogador, tMonstros *monstro)
+{ fCT();
+  int intExperienciaFaltante = jogador->intExperienciaNecessaria - jogador->intExperiencia;
+  jogador->intExperiencia = jogador->intExperiencia + monstro->intExperienciaMorte;
+  printf("Você ganhou %i de experiência...\n", monstro->intExperienciaMorte);
+  while(jogador->intExperiencia > jogador->intExperienciaNecessaria)
+  {
+    jogador->intLevel++;
+    jogador->intExperienciaNecessaria = jogador->intExperienciaNecessaria*1.8;
+    printf("Você subiu para o level %i!\n", jogador->intLevel);
+    printf("Ganhou 3 pontos de atributos\n");
+
+    jogador->intAtributos[7] = jogador->intAtributos[7] + 3;
+    fCT();
+  }
+  intExperienciaFaltante = jogador->intExperienciaNecessaria - jogador->intExperiencia;
+  printf("Você precisa de %i para o próximo level.\n", intExperienciaFaltante);
+  fCT();
+  LimparTela(1);
+}
+
+void fAbrirInventario(tPlayer *jogador, tItem *arrayDeItens, tMonstros *arrayDeMonstros, tHabilidades *arrayDeHabilidades, FILE *arqGameState)
+{
+  char strEntradaJogador;
+  char strEntradaJogadorBolEquiparItem;
+
+  printf("----------INVENTARIO----------\n");
+
+  printf("[1] ARMAS\n");
+  printf("[2] ARMADURAS\n");
+  printf("[3] ACESSORIOS\n");
+  printf("[4] VOLTAR\n");
+
+  printf("Insira um comando: ");
+
+  strEntradaJogador = fVerificarDigito(strEntradaJogador);
+
+  while(strEntradaJogador != '1' && strEntradaJogador != '2' && strEntradaJogador != '3' && strEntradaJogador != '4')
+  {
+
+    printf("--- Comando Inválido ---\n");
+    printf("Insira um comando: ");
+    strEntradaJogador = fVerificarDigito(strEntradaJogador);
+
+  }
+
+  if(strEntradaJogador == '1')
+  {
+    char strEntradaJogadorIF1;
+
+    int contadorItem;
+    int contadorOpcao = 1; // COMECA COM O ITEM NUMERO 1 A SER LISTADO
+    LimparTela(1);
+    //ESTE LOOP PRINTA APENAS OS ITEM CUJA ENMCATEGORIA SEJA 1
+    for(contadorItem = 0; contadorItem < 13; contadorItem++)
+    {
+      if(arrayDeItens[contadorItem].enmCategoria == 1 && arrayDeItens[contadorItem].bolAdquirido == true)
+      {
+
+        printf("[%i] %s", contadorOpcao, arrayDeItens[contadorItem].strNome);
+        contadorOpcao++;
+        if(arrayDeItens[contadorItem].bolEquipado == true)
+        {
+          printf(" [EQUIPADO]");
+        }
+        printf("\n");
+      }
+
+    }
+
+    printf("Insira um comando: ");
+    strEntradaJogadorIF1 = fVerificarDigito(strEntradaJogadorIF1);
+    int intEntradaJogador = strEntradaJogadorIF1 - '0';
+
+    while(intEntradaJogador < 0 || intEntradaJogador > contadorOpcao-1)
+    {
+      printf("--- Comando Inválido ---\n");
+      printf("Insira um comando: ");
+      strEntradaJogadorIF1 = fVerificarDigito(strEntradaJogadorIF1);
+      intEntradaJogador = strEntradaJogadorIF1 - '0';
+
+    }
+
+      //determinar numero "contador" dentro de arrayDeItens[contador] que foi escolhido   com base no numero "strEntradaJogadorIF1" escolhido pelo usuario
+    int contadorEquipar = 0;
+    contadorItem = 0;
+
+    while(contadorEquipar < intEntradaJogador)
+    {
+      if(arrayDeItens[contadorItem].enmCategoria == 1 && arrayDeItens[contadorItem] .bolAdquirido == true)
+      {
+      contadorEquipar++;
+      }
+      contadorItem++;
+    }
+    contadorItem--;
+      //APOS ESCOLHA, PRINTAR INFORMACOES DO ITEM
+    printf("%s\n", arrayDeItens[contadorItem].strNome);
+    printf("RARIDADE: %i\n", arrayDeItens[contadorItem].enmRaridade);
+    if((arrayDeItens[contadorItem].intAtaqueFisico) != 0)
+    {
+      printf("DANO FISICO: %i\n", arrayDeItens[contadorItem].intAtaqueFisico);
+    }
+    if((arrayDeItens[contadorItem].intArmadura) != 0)
+    {
+      printf("ARMADURA: %i\n", arrayDeItens[contadorItem].intArmadura);
+    }
+    if((arrayDeItens[contadorItem].intVida) != 0)
+    {
+      printf("VIDA ADICIONAL: %i\n", arrayDeItens[contadorItem].intVida);
+    }
+    if((arrayDeItens[contadorItem].intChanceCritico) != 0)
+    {
+      printf("CHANCE DE CRITICO ADICIONAL: %i\n", arrayDeItens[contadorItem].intChanceCritico);
+    }
+    if((arrayDeItens[contadorItem].intChanceEvasao) != 0)
+    {
+      printf("CHANCE DE EVASÃO ADICIONAL: %i\n", arrayDeItens[contadorItem].intChanceEvasao);
+    }
+
+    printf("DESEJAS EQUIPAR ITEM?\n");
+    printf("[1] SIM\n");
+    printf("[2] NAO\n");
+    printf("DIGITE SEU COMANDO: ");
+
+    strEntradaJogadorBolEquiparItem = fVerificarDigito(strEntradaJogadorBolEquiparItem);
+
+    while(strEntradaJogadorBolEquiparItem != '1' && strEntradaJogadorBolEquiparItem != '2')
+    {
+      printf("--- Comando Inválido ---\n");
+      printf("Insira um comando: ");
+      strEntradaJogadorBolEquiparItem = fVerificarDigito(strEntradaJogadorBolEquiparItem);
+    }
+
+    if(strEntradaJogadorBolEquiparItem == '1')
+    {
+      arrayDeItens[contadorItem].bolEquipado = true;
+      if(arrayDeItens[contadorItem].bolEquipado == true)
+      {
+        LimparTela(1);
+        printf("Item equipado com sucesso\n");
+        fAtualizarStatus(jogador, arrayDeItens);
+        int i = 0;
+        while(i < 13)
+        {
+          if (i != contadorItem && i < 13 && arrayDeItens[i].enmCategoria == 1)
+          {
+            arrayDeItens[i].bolEquipado = false;
+            if(arrayDeItens[i].bolEquipado == false)
+            {
+            fAtualizarStatus(jogador, arrayDeItens);
+            }
+          }
+          i++;
+        }
+      arrayDeItens[contadorItem].bolEquipado = true;
+      }
+    }
+
+    fChamarMenuPersonagem(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+
+  }
+
+  if(strEntradaJogador == '2')
+  {
+    char strEntradaJogadorIF1;
+
+    int contadorItem;
+    int contadorOpcao = 1; // COMECA COM O ITEM NUMERO 1 A SER LISTADO
+    LimparTela(1);
+    //ESTE LOOP PRINTA APENAS OS ITEM CUJA ENMCATEGORIA SEJA 1
+    for(contadorItem = 0; contadorItem < 13; contadorItem++)
+    {
+      if(arrayDeItens[contadorItem].enmCategoria == 2 && arrayDeItens[contadorItem].bolAdquirido == true)
+      {
+
+        printf("[%i] %s", contadorOpcao, arrayDeItens[contadorItem].strNome);
+        contadorOpcao++;
+        if(arrayDeItens[contadorItem].bolEquipado == true)
+        {
+          printf(" [EQUIPADO]");
+        }
+        printf("\n");
+      }
+
+    }
+
+    printf("Insira um comando: ");
+    strEntradaJogadorIF1 = fVerificarDigito(strEntradaJogadorIF1);
+    int intEntradaJogador = strEntradaJogadorIF1 - '0';
+
+    while(intEntradaJogador < 0 || intEntradaJogador > contadorOpcao-1)
+    {
+      printf("--- Comando Inválido ---\n");
+      printf("Insira um comando: ");
+      strEntradaJogadorIF1 = fVerificarDigito(strEntradaJogadorIF1);
+      intEntradaJogador = strEntradaJogadorIF1 - '0';
+
+    }
+
+      //determinar numero "contador" dentro de arrayDeItens[contador] que foi escolhido   com base no numero "strEntradaJogadorIF1" escolhido pelo usuario
+    int contadorEquipar = 0;
+    contadorItem = 0;
+
+    while(contadorEquipar < intEntradaJogador)
+    {
+      if(arrayDeItens[contadorItem].enmCategoria == 2 && arrayDeItens[contadorItem] .bolAdquirido == true)
+      {
+      contadorEquipar++;
+      }
+      contadorItem++;
+    }
+    contadorItem--;
+      //APOS ESCOLHA, PRINTAR INFORMACOES DO ITEM
+    printf("%s\n", arrayDeItens[contadorItem].strNome);
+    printf("RARIDADE: %i\n", arrayDeItens[contadorItem].enmRaridade);
+    if((arrayDeItens[contadorItem].intAtaqueFisico) != 0)
+    {
+      printf("DANO FISICO: %i\n", arrayDeItens[contadorItem].intAtaqueFisico);
+    }
+    if((arrayDeItens[contadorItem].intArmadura) != 0)
+    {
+      printf("ARMADURA: %i\n", arrayDeItens[contadorItem].intArmadura);
+    }
+    if((arrayDeItens[contadorItem].intVida) != 0)
+    {
+      printf("VIDA ADICIONAL: %i\n", arrayDeItens[contadorItem].intVida);
+    }
+    if((arrayDeItens[contadorItem].intChanceCritico) != 0)
+    {
+      printf("CHANCE DE CRITICO ADICIONAL: %i\n", arrayDeItens[contadorItem].intChanceCritico);
+    }
+    if((arrayDeItens[contadorItem].intChanceEvasao) != 0)
+    {
+      printf("CHANCE DE EVASÃO ADICIONAL: %i\n", arrayDeItens[contadorItem].intChanceEvasao);
+    }
+
+    printf("DESEJAS EQUIPAR ITEM?\n");
+    printf("[1] SIM\n");
+    printf("[2] NAO\n");
+    printf("DIGITE SEU COMANDO: ");
+
+    strEntradaJogadorBolEquiparItem = fVerificarDigito(strEntradaJogadorBolEquiparItem);
+
+    while(strEntradaJogadorBolEquiparItem != '1' && strEntradaJogadorBolEquiparItem != '2')
+    {
+      printf("--- Comando Inválido ---\n");
+      printf("Insira um comando: ");
+      strEntradaJogadorBolEquiparItem = fVerificarDigito(strEntradaJogadorBolEquiparItem);
+    }
+
+    if(strEntradaJogadorBolEquiparItem == '1')
+    {
+      arrayDeItens[contadorItem].bolEquipado = true;
+      if(arrayDeItens[contadorItem].bolEquipado == true)
+      {
+        LimparTela(1);
+        printf("Item equipado com sucesso\n");
+        fAtualizarStatus(jogador, arrayDeItens);
+        int i = 0;
+        while(i < 13)
+        {
+          if (i != contadorItem && i < 13 && arrayDeItens[i].enmCategoria == 2)
+          {
+            arrayDeItens[i].bolEquipado = false;
+            if(arrayDeItens[i].bolEquipado == false)
+            {
+            fAtualizarStatus(jogador, arrayDeItens);
+            }
+          }
+          i++;
+        }
+      arrayDeItens[contadorItem].bolEquipado = true;
+      }
+    }
+
+    fChamarMenuPersonagem(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+
+  }
+
+  if(strEntradaJogador == '3')
+  {
+    char strEntradaJogadorIF1;
+
+    int contadorItem;
+    int contadorOpcao = 1; // COMECA COM O ITEM NUMERO 1 A SER LISTADO
+    LimparTela(1);
+    //ESTE LOOP PRINTA APENAS OS ITEM CUJA ENMCATEGORIA SEJA 1
+    for(contadorItem = 0; contadorItem < 13; contadorItem++)
+    {
+      if(arrayDeItens[contadorItem].enmCategoria == 3 && arrayDeItens[contadorItem].bolAdquirido == true)
+      {
+
+        printf("[%i] %s", contadorOpcao, arrayDeItens[contadorItem].strNome);
+        contadorOpcao++;
+        if(arrayDeItens[contadorItem].bolEquipado == true)
+        {
+          printf(" [EQUIPADO]");
+        }
+        printf("\n");
+      }
+
+    }
+
+    printf("Insira um comando: ");
+    strEntradaJogadorIF1 = fVerificarDigito(strEntradaJogadorIF1);
+    int intEntradaJogador = strEntradaJogadorIF1 - '0';
+
+    while(intEntradaJogador < 0 || intEntradaJogador > contadorOpcao-1)
+    {
+      printf("--- Comando Inválido ---\n");
+      printf("Insira um comando: ");
+      strEntradaJogadorIF1 = fVerificarDigito(strEntradaJogadorIF1);
+      intEntradaJogador = strEntradaJogadorIF1 - '0';
+
+    }
+
+      //determinar numero "contador" dentro de arrayDeItens[contador] que foi escolhido   com base no numero "strEntradaJogadorIF1" escolhido pelo usuario
+    int contadorEquipar = 0;
+    contadorItem = 0;
+
+    while(contadorEquipar < intEntradaJogador)
+    {
+      if(arrayDeItens[contadorItem].enmCategoria == 3 && arrayDeItens[contadorItem].bolAdquirido == true)
+      {
+      contadorEquipar++;
+      }
+      contadorItem++;
+    }
+    contadorItem--;
+      //APOS ESCOLHA, PRINTAR INFORMACOES DO ITEM
+    printf("%s\n", arrayDeItens[contadorItem].strNome);
+    printf("RARIDADE: %i\n", arrayDeItens[contadorItem].enmRaridade);
+    if((arrayDeItens[contadorItem].intAtaqueFisico) != 0)
+    {
+      printf("DANO FISICO: %i\n", arrayDeItens[contadorItem].intAtaqueFisico);
+    }
+    if((arrayDeItens[contadorItem].intArmadura) != 0)
+    {
+      printf("ARMADURA: %i\n", arrayDeItens[contadorItem].intArmadura);
+    }
+    if((arrayDeItens[contadorItem].intVida) != 0)
+    {
+      printf("VIDA ADICIONAL: %i\n", arrayDeItens[contadorItem].intVida);
+    }
+    if((arrayDeItens[contadorItem].intChanceCritico) != 0)
+    {
+      printf("CHANCE DE CRITICO ADICIONAL: %i\n", arrayDeItens[contadorItem].intChanceCritico);
+    }
+    if((arrayDeItens[contadorItem].intChanceEvasao) != 0)
+    {
+      printf("CHANCE DE EVASÃO ADICIONAL: %i\n", arrayDeItens[contadorItem].intChanceEvasao);
+    }
+
+    printf("DESEJAS EQUIPAR ITEM?\n");
+    printf("[1] SIM\n");
+    printf("[2] NAO\n");
+    printf("DIGITE SEU COMANDO: ");
+
+    strEntradaJogadorBolEquiparItem = fVerificarDigito(strEntradaJogadorBolEquiparItem);
+
+    while(strEntradaJogadorBolEquiparItem != '1' && strEntradaJogadorBolEquiparItem != '2')
+    {
+      printf("--- Comando Inválido ---\n");
+      printf("Insira um comando: ");
+      strEntradaJogadorBolEquiparItem = fVerificarDigito(strEntradaJogadorBolEquiparItem);
+    }
+
+    if(strEntradaJogadorBolEquiparItem == '1')
+    {
+      arrayDeItens[contadorItem].bolEquipado = true;
+      if(arrayDeItens[contadorItem].bolEquipado == true)
+      {
+        LimparTela(1);
+        printf("Item equipado com sucesso\n");
+        fAtualizarStatus(jogador, arrayDeItens);
+        int i = 0;
+        while(i < 13 )
+        {
+          if (i != contadorItem && i < 13 && arrayDeItens[i].enmCategoria == 3)
+          {
+            arrayDeItens[i].bolEquipado = false;
+            if(arrayDeItens[i].bolEquipado == false)
+            {
+            fAtualizarStatus(jogador, arrayDeItens);
+            }
+          }
+          i++;
+        }
+      arrayDeItens[contadorItem].bolEquipado = true;
+      }
+    }
+
+    fChamarMenuPersonagem(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+
+  }
+
+  fChamarMenuPersonagem(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+
+}
+
+
+void fPrintarStatusBatalha(tMonstros *monstroCombate, tPlayer *jogador)
+{
+  printf("xXx   %s   xXx\n", monstroCombate->strNome);
+  printf("Vida: %i ", monstroCombate->intVida);
+  printf("|| Mana: %i ", monstroCombate->intMana);
+  printf("|| Ataque Físico: %i ", monstroCombate->intAtaqueFisico);
+  printf("|| Ataque Mágico: %i\n", monstroCombate->intAtaqueMagico);
+  printf("\n-----------------------------------------------------------------------------\n");
+  printf("");
+  printf("Vida: %i ", jogador->intSAVida);
+  printf("|| Mana: %i ", jogador->intSAMana);
+  printf("|| Ataque Físico: %i ", jogador->intSAAtaqueFisico);
+  printf("|| Ataque Mágico: %i\n\n", jogador->intSAAtaqueMagico);
+}
+
+
+int fTurnoMonstro(tMonstros *inimigo, tPlayer *jogador)
+{
+  if(inimigo->intVida > 0)
+    {
+    int calc = 0;
+
+    float fltDanoHabilidade = 0;
+    float fltManaGasta = 0;
+    fltManaGasta = inimigo->intMana;
+
+    int intDanoCausado = 0;
+
+    int intDanoFisico = 0;
+    int intDanoMagico = 0;
+
+    float fltArmaduraJogador = jogador->intSAArmadura;
+    float fltResistenciaMagicaJogador = jogador->intSAResistenciaMagica;
+
+    float fltAtaqueFisico = inimigo->intAtaqueFisico;
+    float fltAtaqueMagico = inimigo->intAtaqueMagico;
+
+    inimigo->intMana = inimigo->intMana + 20;
+
+
+    if(inimigo->intMana > 30)
+    {
+      calc = GerarValorAleatorio(0,101);
+      if(calc >= 0 && calc <= 25)
+      {
+        fltDanoHabilidade = inimigo->intMana/4;
+        inimigo->intMana = inimigo->intMana - fltManaGasta/4;
+        printf("O inimigo atacou com uma Habilidade...\n");
+      }
+      if(calc > 25 && calc <= 52)
+      {
+        fltDanoHabilidade = inimigo->intMana/3;
+        inimigo->intMana = inimigo->intMana - fltManaGasta/3;
+        printf("O inimigo atacou com uma Habilidade...\n");
+      }
+      if(calc > 52 && calc <= 70)
+      {
+        fltDanoHabilidade = inimigo->intMana/2;
+        inimigo->intMana = inimigo->intMana - fltManaGasta/2;
+        printf("O inimigo atacou com uma Habilidade...\n");
+      }
+      if(calc > 70 && calc <= 85)
+      {
+        fltDanoHabilidade = inimigo->intMana*2;
+        inimigo->intMana = inimigo->intMana - fltManaGasta;
+        printf("O inimigo atacou com uma Habilidade...\n");
+      }
+      if(calc > 85 && calc <= 101)
+      {
+        inimigo->intMana = inimigo->intMana + 20;
+        fltDanoHabilidade = 0;
+        printf("O inimigo atacou usando um ataque de...\n");
+      }
+      if(inimigo->intMana < 0)
+      {
+        inimigo->intMana = 0;
+      }
+    }
+    else if(inimigo->intMana <= 30)
+    {
+      inimigo->intMana = inimigo->intMana + 20;
+      fltDanoHabilidade = 0;
+      printf("O inimigo atacou usando um ataque de...\n");
+    }
+
+    if( GerarValorAleatorio(0,101) > 30)
+    {
+      printf("De dano físico\n");
+      intDanoMagico = 0;
+      intDanoFisico = fltAtaqueFisico  + (fltAtaqueFisico * fltDanoHabilidade/100) - (fltAtaqueFisico * fltArmaduraJogador/100);
+    }
+    else
+    {
+      printf("De dano mágico.\n");
+      intDanoFisico = 0;
+      intDanoMagico = fltAtaqueMagico  + (fltAtaqueMagico * fltDanoHabilidade/100) - (fltAtaqueMagico * fltResistenciaMagicaJogador/100);
+    }
+
+    intDanoCausado = intDanoFisico + intDanoMagico;
+
+    if(inimigo->intChanceCritico > GerarValorAleatorio(0,101))
+    {
+      printf("O inimigo causou dano crítico...\n");
+      intDanoCausado = intDanoCausado * 2;
+    }
+    else if( jogador->intSAChanceEvasao  > GerarValorAleatorio(0,101))
+    {
+      printf("Você conseguiu se evadir do ataque inimigo...\n");
+      intDanoCausado = 0;
+    }
+    if(intDanoCausado < 0)
+    {
+      intDanoCausado = 0;
+    }
+    printf("Dano causado pelo inimigo: %i \n\n", intDanoCausado);
+    jogador->intSAVida = jogador->intSAVida - intDanoCausado;
+    return 1;
+  }
+  else
+  {
+    return 1;
+  }
+}
+
+
+int fIniciarTurno(tMonstros *inimigo, tPlayer *jogador, tHabilidades *arrayDeHabilidades)
+{
+  jogador->intMana = jogador->intMana + 5;
+//  int atordoado = 0;
+  int intDanoCausado = 0;
+  float fltDanoCausado = 0;
+
+  char strEntradaJogador;
+  int intEntradaJogador;
+  int contadorOpcao = 1;
+  float fltArmaduraInimigo = inimigo->intArmadura;
+  float fltResistenciaMagicaInimigo = inimigo->intResistenciaMagica;
+
+  printf("\n[1] [ATACAR]\n");
+  printf("[2] [HABILIDADES]\n");
+  printf("Insira um comando: ");
+  strEntradaJogador = fVerificarDigito(strEntradaJogador);
+
+  while(strEntradaJogador != '1' && strEntradaJogador != '2')
+  {
+    printf("--- Comando Inválido ---\n");
+    printf("Insira um comando: ");
+    strEntradaJogador = fVerificarDigito(strEntradaJogador);
+  }
+
+  if(strEntradaJogador == '1')
+  {
+    intDanoCausado = jogador->intSAAtaqueFisico + jogador->intSADanoFisExtra - (intDanoCausado * fltArmaduraInimigo/100);
+    if(jogador->intSAChanceCritico > GerarValorAleatorio(0,101))
+    {
+      printf("Você causou dano crítico...\n");
+      intDanoCausado = intDanoCausado * 2;
+    }
+    else if(inimigo->intChanceEvasao > GerarValorAleatorio(0,101))
+    {
+      printf("O inimigo conseguiu se evadir do seu ataque...\n");
+      intDanoCausado = 0;
+    }
+    if(intDanoCausado < 0)
+    {
+      intDanoCausado = 0;
+    }
+    inimigo->intVida = inimigo->intVida - intDanoCausado;
+    printf("Dano Causado: %i\n", intDanoCausado);
+    fCT();
+    fTurnoMonstro(inimigo, jogador);
+    return 1;
+  }
+
+  if(strEntradaJogador == '2')
+  {
+    LimparTela(1);
+    printf("|| HABILIDADES ||\n\n");
+    int contadorHabilidades = 0;
+    int dano = 0;
+    contadorOpcao = 0;
+    while(contadorHabilidades < 11)
+    {
+      if(arrayDeHabilidades[contadorHabilidades].bolAdquirido == true)
+      {
+        contadorOpcao++;
+        dano = arrayDeHabilidades[contadorHabilidades].intDanoFisico + arrayDeHabilidades[contadorHabilidades].intDanoMagico;
+
+        printf("[%i] %s \nDano: %i Mana: %i Acerto: %i\n\n", contadorOpcao, arrayDeHabilidades[contadorHabilidades].strNome, dano, arrayDeHabilidades[contadorHabilidades].intCustoMana, arrayDeHabilidades[contadorHabilidades].intChanceDeAcerto);
+      }
+      contadorHabilidades++;
+    }
+    printf("[0] Voltar\n\n");
+    printf("Insira um comando: ");
+    strEntradaJogador = fVerificarDigito(strEntradaJogador);
+    intEntradaJogador = strEntradaJogador - '0';
+
+    while(intEntradaJogador < 0 || intEntradaJogador > contadorOpcao)
+    {
+      printf("--- Comando Inválido ---\n");
+      printf("Insira um comando: ");
+      strEntradaJogador = fVerificarDigito(strEntradaJogador);
+      intEntradaJogador = strEntradaJogador - '0';
+    }
+
+    if(strEntradaJogador == '0')
+    {
+      LimparTela(1);
+      jogador->intSAMana = jogador->intSAMana - 5;
+      fPrintarStatusBatalha(inimigo, jogador);
+      fIniciarTurno(inimigo, jogador, arrayDeHabilidades);
+    }
+
+    int contadorAdquirido = 0;
+    contadorHabilidades = 0;
+
+    while(contadorAdquirido < intEntradaJogador)
+    {
+      if(arrayDeHabilidades[contadorHabilidades].bolAdquirido == true)
+      {
+      contadorAdquirido++;
+      }
+      contadorHabilidades++;
+    }
+    contadorHabilidades--;
+    LimparTela(1);
+    printf("%s\n", arrayDeHabilidades[contadorHabilidades].strNome);
+
+    dano = arrayDeHabilidades[contadorHabilidades].intDanoFisico +arrayDeHabilidades[contadorHabilidades].intDanoMagico;
+
+    if(jogador->intSAMana > arrayDeHabilidades[contadorHabilidades].intCustoMana)
+    {
+      jogador->intSAMana = jogador->intSAMana - arrayDeHabilidades[contadorHabilidades].intCustoMana;
+      if(arrayDeHabilidades[contadorHabilidades].intDanoFisico > 0)
+      {
+        intDanoCausado = dano + jogador->intSAAtaqueFisico;
+        intDanoCausado = intDanoCausado + jogador->intSADanoFisExtra - (intDanoCausado * fltArmaduraInimigo/100);
+        if(jogador->intSAChanceCritico > GerarValorAleatorio(0,101))
+        {
+          printf("Você causou dano crítico...\n");
+          intDanoCausado = intDanoCausado * 2;
+        }
+        else if((inimigo->intChanceEvasao + (100 - arrayDeHabilidades[contadorHabilidades].intChanceDeAcerto) )> GerarValorAleatorio(0,101))
+        {
+          printf("O inimigo conseguiu se evadir do seu ataque...\n");
+          intDanoCausado = 0;
+        }
+        if(intDanoCausado < 0)
+        {
+          intDanoCausado = 0;
+        }
+        inimigo->intVida = inimigo->intVida - intDanoCausado;
+      }
+      if(arrayDeHabilidades[contadorHabilidades].intDanoMagico > 0)
+      {
+        intDanoCausado = dano + jogador->intSAAtaqueMagico;
+        //fltDanoCausado = (float)intDanoCausado;
+        intDanoCausado = intDanoCausado + jogador->intSADanoMagExtra - (intDanoCausado * fltResistenciaMagicaInimigo/100);
+        if(jogador->intSAChanceCritico > GerarValorAleatorio(0,101))
+        {
+          printf("Você causou dano crítico...\n");
+          intDanoCausado = intDanoCausado * 2;
+        }
+        else if((inimigo->intChanceEvasao + (100 - arrayDeHabilidades[contadorHabilidades].intChanceDeAcerto) ) > GerarValorAleatorio(0,101))
+        {
+          printf("O inimigo conseguiu se evadir do seu ataque...\n");
+          intDanoCausado = 0;
+        }
+        if(intDanoCausado < 0)
+        {
+          intDanoCausado = 0;
+        }
+        inimigo->intVida = inimigo->intVida - intDanoCausado;
+      }
+      printf("Dano Causado: %i\n", intDanoCausado);
+      fCT();
+    }
+    else
+    {
+      if(strEntradaJogador != '0')
+      {
+      printf("Sem Mana Suficiente\n");
+      fCT();
+      }
+      fPrintarStatusBatalha(inimigo, jogador);
+      fIniciarTurno(inimigo, jogador, arrayDeHabilidades);
+    }
+    fTurnoMonstro(inimigo, jogador);
+    return 1;
+  }
+  return 0;
+}
+
+void fBatalhar(int intPosicaoMonstroEscolhido, tPlayer *jogador, tItem *arrayDeItens, tMonstros *arrayDeMonstros, tHabilidades *arrayDeHabilidades, FILE *arqGameState)
+{
+
+  printf("VOCÊ ENTROU EM BATALHA\n\n");
+  fCT();
+  tMonstros monstroCombate = arrayDeMonstros[intPosicaoMonstroEscolhido];
+  while(jogador->intSAVida > 0 && monstroCombate.intVida > 0)
+  {
+  fPrintarStatusBatalha(&monstroCombate, jogador);
+  fIniciarTurno(&monstroCombate, jogador, arrayDeHabilidades);
+  }
+  if(jogador->intSAVida <= 0)
+  {
+    fCT();
+    printf("--- FIM DE JOGO ---\n");
+    printf("--- VOCÊ MORREU ---\n\n");
+    printf("Pressione qualquer tecla para ir ao menu inicial\n");
+    fCT();
+    fMenuInicial(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+  }
+  if(monstroCombate.intVida <= 0)
+  {
+    fGanharExperienciaMonstro(jogador, &monstroCombate);
+  }
+}
+
+
+void fLerStatusEAtributos(tPlayer *jogador)
+{
+  printf("Vida = %i\n", jogador->intVida);
+  printf("Mana = %i\n", jogador->intMana);
+  printf("Armadura = %i\n", jogador->intArmadura);
+  printf("Resistencia Mágica = %i\n", jogador->intResistenciaMagica);
+  printf("Ataque Fisico = %i\n", jogador->intAtaqueFisico);
+  printf("Ataque Mágico = %i\n", jogador->intAtaqueMagico);
+  printf("Chance de Evasão = %i\n", jogador->intChanceEvasao);
+  printf("Chance de Crítico = %i\n", jogador->intChanceCritico);
+  printf("Vida proveniente de itens = %i\n", jogador->intIVida);
+  printf("Mana proveniente de itens = %i\n", jogador->intIMana);
+  printf("Armadura proveniente de itens = %i\n", jogador->intIArmadura);
+  printf("Resistencia Mágica proveniente de itens = %i\n", jogador->intIResistenciaMagica);
+  printf("Ataque Físico proveniente de itens = %i\n", jogador->intIAtaqueFisico);
+  printf("Ataque Mágico proveniente de itens = %i\n", jogador->intIAtaqueMagico);
+  printf("Chance de Evasão proveniente de itens = %i\n", jogador->intIChanceEvasao);
+  printf("Chance de Crítico proveniente de itens = %i\n", jogador->intIChanceCritico);
+  printf("Vitalidade = %i\n", jogador->intAtributos[1]);
+  printf("Força = %i\n", jogador->intAtributos[2]);
+  printf("Inteligência = %i\n", jogador->intAtributos[3]);
+  printf("Destreza = %i\n", jogador->intAtributos[4]);
+  printf("sorte = %i\n", jogador->intAtributos[5]);
+  printf("Percepção = %i\n", jogador->intAtributos[6]);
+  printf("Pontos De Atributos Restantes  = %i\n", jogador->intAtributos[7]);
+  printf("Área Atual = %i\n", jogador->intAreaAtual);
+  printf("Level = %i\n", jogador->intLevel);
+  printf("Experiencia = %i\n", jogador->intExperiencia);
+  printf("Experiencia  Necessesária Próximo Level= %i\n", jogador->intExperienciaNecessaria);
+  printf("Vida Atual = %i\n", jogador->intSAVida);
+  printf("Mana Atual = %i\n", jogador->intSAMana);
+  printf("Armadura Atual = %i\n", jogador->intSAArmadura);
+  printf("Resistencia Mágica Atual = %i\n", jogador->intSAResistenciaMagica);
+  printf("Ataque Físico Atual = %i\n", jogador->intSAAtaqueFisico);
+  printf("Ataque Mágico Atual = %i\n", jogador->intSAAtaqueMagico);
+  printf("Chance de Evasão Atual = %i\n", jogador->intSAChanceEvasao);
+  printf("Chance de Crítico Atual = %i\n", jogador->intSAChanceCritico);
+  printf("Dano Físico Extra = %i\n", jogador->intSADanoFisExtra);
+  printf("Dano Mágico Extra = %i\n\n", jogador->intSADanoMagExtra);
+  fCT();
+
+}
+
+int SalvarJogo(tPlayer *jogador, tItem *arrayDeItens, tMonstros *arrayDeMonstros, tHabilidades *arrayDeHabilidades, FILE *arqGameState)
+{
+  //FILE *arqGameState2 = fopen("GameState2.bin", "wb");
+  arqGameState = fopen("GameState.bin", "wb");
+  if(arqGameState == NULL)
+  {
+    printf("Nao foi possivel obter o estado do jogo\n");
+    return 0;
+  }
+  fwrite(jogador, sizeof(tPlayer), 1, arqGameState);
+  fwrite(arrayDeItens, sizeof(tItem), 13, arqGameState);
+  fwrite(arrayDeMonstros, sizeof(tMonstros), 12, arqGameState);
+  fwrite(arrayDeHabilidades, sizeof(tHabilidades), 11, arqGameState);
+  fclose(arqGameState);
+
+  return 1;
+}
+
+tPlayer CarregarJogo(tPlayer *jogador, tItem *arrayDeItens, tMonstros *arrayDeMonstros, tHabilidades *arrayDeHabilidades, FILE *arqGameState)
+{
+  //FILE *arqGameState2 = fopen("GameState2.bin", "rb");
+  arqGameState = fopen("GameState.bin", "rb");
+  if(arqGameState == NULL)
+  {
+    printf("Nao foi possivel obter o estado do jogo\n");
+  }
+
+  fread(jogador, sizeof(tPlayer), 1, arqGameState);
+  fread(arrayDeItens, sizeof(tItem), 13, arqGameState);
+  fread(arrayDeMonstros, sizeof(tMonstros), 12, arqGameState);
+  fread(arrayDeHabilidades, sizeof(tHabilidades), 11, arqGameState);
+
+  fclose(arqGameState);
+  return *jogador;
+}
+
+
+int fMenuInicial(tPlayer *jogador, tItem *arrayDeItens, tMonstros *arrayDeMonstros, tHabilidades *arrayDeHabilidades, FILE *arqGameState)
+{
+  LimparTela(1); //função para Limpar a tela (1 representa limpeza em linux)
+  char strEntradaJogador;
+  printf("Alfheim Myth RPG 1.0\n\n");
+  printf("[1] Novo Jogo\n");
+  printf("[2] Carregar Jogo\n");
+  printf("[3] Créditos\n");
+  printf("[0] Sair do Jogo\n");
+  printf("\nInsira um comando: ");
+  strEntradaJogador = fVerificarDigito(strEntradaJogador);
+
+  while(strEntradaJogador != '1' && strEntradaJogador != '2' && strEntradaJogador != '3' && strEntradaJogador != '0')
+  {
+    printf("Comando invalido...\n");
+    printf("Insira um comando Válido: ");
+    strEntradaJogador = fVerificarDigito(strEntradaJogador);
+  }
+
+  if(strEntradaJogador == '0')
+    {
+      exit(0);
+    }
+  if(strEntradaJogador == '1')
+  {
+    jogador->intAtributos[1] = GerarValorAleatorio(7,13);
+    jogador->intAtributos[2] = GerarValorAleatorio(7,11);
+    jogador->intAtributos[3] = GerarValorAleatorio(7,11);
+    jogador->intAtributos[4] = GerarValorAleatorio(7,11);
+    jogador->intAtributos[5] = GerarValorAleatorio(2,7);
+    jogador->intAtributos[6] = GerarValorAleatorio(1,4);
+    jogador->intAtributos[7] = 0;
+    jogador->intLevel = 1;
+    jogador->intExperienciaNecessaria = 115;
+
+    fAtualizarStatus(jogador, arrayDeItens);
+    fRestaurarTodosStatus(jogador, arrayDeItens);
+    SalvarJogo(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+    jogador->intAreaAtual = 1;
+    fLerStatusEAtributos(jogador);
+    fCT();
+   /* fBatalhar(1, jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);*/
+    fChamarArea(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+
+  }
+  if(strEntradaJogador == '2')
+  {
+    CarregarJogo(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+    fChamarArea(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+  }
+  if(strEntradaJogador == '3')
+  {
+    LimparTela(1);
+    printf("--- DESENVOLVIDO POR ---\n");
+    printf("Cristhian Cunha\nGabrielle Veríssimo\nGustavo Dias\nJoão Roberto\nMario Assis\n");
+    printf("------------------------\n");
+    fCT();
+    LimparTela(1);
+    fMenuInicial(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+  }
+  return 0;
+}
+
+void area1 (tPlayer *jogador, tItem *arrayDeItens, tMonstros *arrayDeMonstros, tHabilidades *arrayDeHabilidades, FILE *arqGameState)
+{
+  //CHAR PARA ARMAZENAR AS ENTRADAS DO JOGADOR
+  char strEntradaJogador;
+
+  //FUNÇÃO PARA LIMPAR A TELA
+  LimparTela(1);
+
+  //TEXTO INICIAL (MAPA1)
+  char str1[] = " Alfheim... o pacífico e solene lar dos elfos, onde os seres dançam e bebem aos cânticos de bardos, que abençoam o ambiente sobre o brilho das estrelas. É um dos mundos que compõem os nove reinos da árvore Yggdrasil. O lar dos elfos é uma das raízes existentes no nível mais alto dos ramos, assim como Asgard e Vanaheim.\n";
+  fTratarString(str1);
+  fCT();
+
+  char str2[] = " Nascido ao banho da luz lunar, entre inúmeras bençãos proclamadas por bardos durante a passagem de um aspecto divino chamado de Sunna, Yuno cresceu como um dos seres abençoados pela mana, e desde criança era um elfo da luz. Embora nascido como um plebeu em um vilarejo simples, onde não havia tanto acesso a magia, nunca compreendeu que era um elfo iluminado já que não tinha conhecimento sobre isso, porém sempre buscou tentar entender o que era aquela energia que o circulava, já que ele conseguia sentir a mana em todos os ambientes. Apesar dessa sensação, Yuno nunca entendeu que havia possibilidades de explorar aquilo.\n";
+  fTratarString(str2);
+  fCT();
+
+  char str3[] = " Com o passar do tempo ao completar seus 20 anos, Yuno percebeu que a realidade do vilarejo em que vivia era uma completa decepção e que aquilo precisava mudar. Apesar do lar dos elfos sempre ter sido um local calmo, houve consequências para o desprezo da nobreza, por não explorarem a força e o talento da plebe para proteger o reino, as invasões causadas por outras raças como Orcs e Goblins se tornaram algo frequente, e logo, um reino calmo e próspero começou a se despedaçar em caos, como um presságio dos seus atos.\n";
+  fTratarString(str3);
+  fCT();
+
+  char str4[] = " Yuno nunca esqueceria aquela fatídica noite que mudaria o rumo da sua vida para sempre. No dia da tragédia, tudo estava acontecendo normalmente como o planejado, Yuno acordara logo depois dos primeiros raios do sol despontarem no horizonte e se preparou para ajudar os pais nos afazeres diários e acompanhar seus irmãos à escola. Depois de terminar com suas obrigações, foi encontrar os amigos no centro do vilarejo, onde a alegria estava sempre presente apesar dos problemas que os orcs e goblins vinham causando.\n";
+  fTratarString(str4);
+  fCT();
+
+  char str5[] = " Enquanto Yuno caminhava pelas ruas, discutia consigo mesmo a melhor forma de pôr um fim nessas invasões que estavam dando tanta dor de cabeça aos moradores. No dia seguinte, haveria uma assembleia para discutir o problema e tentar achar uma solução temporária enquanto um representante, elegido pelos aldeões, iria até o rei para que o mesmo enviasse algum tipo de ajuda.\n";
+  fTratarString(str5);
+  fCT();
+
+  char str6[] = " O jovem elfo deixou seus pensamentos de lado assim que avistou seus amigos em uma roda de música próxima à estátua do Deus Maritan. Todos pareciam felizes enquanto escutavam o canto do bardo Raymufur, que encantava a todos com o som da sua linda voz. Yuno aproximou-se sem pressa, pensando em como era sortudo por nascer em um lugar tão belo e por ter tantos amigos queridos.\n";
+  fTratarString(str6);
+  fCT();
+
+  char str7[] = " Assim que alcançou a roda, cumprimentou a todos e parou para admirar o canto de Raymufur. Yuno poderia ficar ali o dia todo escutando as canções, dançando, se divertindo com seus amigos, mas infelizmente os elfos não podiam ficar até tarde nas ruas por causa das ameaças que espreitam à noite nas redondezas do vilarejo. Por isso, ao findar do pôr do sol, o fluxo de pessoas nas ruas aumentou com a ida dos habitantes para suas casas. Yuno e seus amigos se despediram e seguiram o exemplo do restante dos moradores dirigindo-se às seus respectivos lares.\n";
+  fTratarString(str7);
+  fCT();
+
+  char str8[] = " O céu noturno já estava repleto de estrelas quando Yuno deitou-se em sua cama para dormir. Apesar de estar cansado, ele não conseguia se entregar ao mundo dos sonhos, alguma coisa o estava inquietando mas o elfo não conseguia descobrir o que era. Depois de rolar de um lado para o outro, desistiu de tentar adormecer e levantou-se indo em direção à cozinha para beber água. Passado alguns minutos divagando sobre a estranha sensação que o cercava, o jovem elfo escutou um grito apavorante rasgar o silêncio da noite fazendo com que um arrepio descesse por sua espinha.\n\n";
+  fTratarString(str8);
+
+  // OPÇÕES DE COMANDO DO MAPA 1
+  printf("[1] Vou lá fora ver o que está acontecendo.\n");
+  printf("[2] Vou ao quarto dos meus pais avisar que algo está acontecendo.\n\n");
+  printf("Insira um comando: ");
+
+  // VERIFICAR SE A ENTRADA É UM DIGITO, LIMPAR O BUFFER, E ATRIBUIR O VALOR A VARIÁVEL
+  strEntradaJogador = fVerificarDigito(strEntradaJogador);
+
+  // WHILE PARA VERIFICAR SE A ENTRADA NÚMERICA È UMA DAS OPÇÕES VÁLIDAS (1 ou 2)
+  while(strEntradaJogador != '1' && strEntradaJogador != '2')
+    {
+      printf("--- Comando Inválido ---\n");
+      printf("Insira um comando: ");
+      strEntradaJogador = fVerificarDigito(strEntradaJogador);
+    }
+
+  // SE A ENTRADA FOR UM, EXECUTAR ESTE PASSO
+  if(strEntradaJogador == '1')
+  {
+    // LIMPAR TELA
+    LimparTela(1);
+
+    // TEXTO DA OPÇÃO 1.1
+    char str9[] = " Você larga o copo, que ainda estava em sua mão, em cima da mesa e corre para fora para ver o que estava acontecendo.\n";
+    fTratarString(str9);
+    fCT();
+
+    char str10[] = " Assim que abre a porta de sua casa, arregala os olhos perante o horror que presencia, uma mulher estava de joelhos no chão enquanto um orc a segurava pelos cabelos forçando-a a observar seu filho sendo decapitado com um machado por outro orc. Lágrimas rolam pelo rosto da mãe e soluços compulsivos saem de sua boca ao mesmo tempo que ela observa o corpo inerte do seu filho no chão.\n";
+    fTratarString(str10);
+    fCT();
+
+    char str11[] = " - Não chore, pobre mulher, agora é a sua vez de ganhar um corte de cabelo novo. - Os orcs começaram a rir e se prepararam para matar a mulher.\n\n";
+    fTratarString(str11);
+
+    char str12[] = " - Eu não posso ficar aqui só olhando, tenho que fazer alguma coisa.\n\n";
+    fTratarString(str12);
+
+    // OPÇÕES DE COMANDO DO MAPA 1.1
+    printf("[1] Tento ajudar.\n");
+    printf("[2] Grito por ajuda.\n");
+    printf("[3] Outros. \n\n");
+    printf("Insira um comando: ");
+
+    // VERIFICAR SE A ENTRADA É UM DIGITO, LIMPAR O BUFFER, E ATRIBUIR O VALOR A VARIÁVEL
+    strEntradaJogador = fVerificarDigito(strEntradaJogador);
+
+    // WHILE PARA VERIFICAR SE A ENTRADA NÚMERICA È UMA DAS OPÇÕES VÁLIDAS (1 ou 2)
+    while(strEntradaJogador != '1' && strEntradaJogador != '2' && strEntradaJogador != '3')
+    {
+      printf("--- Comando Inválido ---\n");
+      printf("Insira um comando: ");
+      strEntradaJogador = fVerificarDigito(strEntradaJogador);
+    }
+
+    // SE A ENTRADA FOR UM, EXECUTAR ESTE CÓDIGO
+    if(strEntradaJogador == '1')
+    {
+
+      // TEXTO DA OPÇÃO 1.
+      LimparTela(1);
+      char str13[] = " Gritos de terror e desespero ecoam pelo vilarejo a medida que os moradores saem de suas casas e viam o que estava acontecendo. Mas você não presta atenção nisso, sua concentração está toda voltada em correr o mais rápido possível para cima do orc que segurava o machado, mas o resto do bando do monstro impede que você alcance seu objetivo acertando um potente soco no meio do seu rosto. Seu corpo cai para trás com impacto e vai de encontro ao chão.\n\n";
+      fTratarString(str13);
+
+
+      char str14[] = "- HAHAHAHAHAHA...Você acha que pode me impedir, fedelho? Observe.- O orc zomba de você e se volta para a mulher para pôr em prática sua intenção inicial.O povoado grita e alguns tentam ajudar, mas nada é efetivo contra a quantidade de orcs que inunda o vilarejo.\n\n";
+      fTratarString(str14);
+      fCT();
+
+      char str15[] = "  Caído no chão e com a mão sobre o nariz quebrado, você só consegue observar a cabeça da elfa rolar para longe do próprio corpo.\n";
+      fTratarString(str15);
+      fCT();
+
+      char str18[] = "- YUNO!- Sua cabeça se volta para trás para encontrar os olhos da sua mãe cheios de lágrimas olhando para você e seu pai de pé ao lado dela levando no rosto uma feição cheia de preocupação. Seus irmãos estão na entrada da casa e se assustam com as feias criaturas que o cercam. O líder do bando percebe que eles são seus familiares e tem uma ideia maravilhosa para castigá-lo pelo intento heroico de antes.\n\n";
+      fTratarString(str18);
+      fCT();
+
+      char str19[] = " Ele caminha lentamente até sua família, você percebe suas intenções e grita para que seus pais e irmãos corram, mas eles não são rápidos o bastante para escapar das garras dos orcs.\n";
+      fTratarString(str19);
+      fCT();
+
+      char str20[] = "- Como eu gostei de você, pequeno heroi,irei deixá-lo escolher qual membro da sua família irá morrer primeiro.\n\n";
+      fTratarString(str20);
+      fCT();
+
+      // OPÇÕES DE COMANDO DO TEXTO 1.1.1
+      printf("[1] Imploro para que ele não faça nada.\n");
+      printf("[2] O xingo e tento me levantar.\n\n");
+      printf("Insira um comando: ");
+
+      // VERIFICAR SE A ENTRADA É UM DIGITO, LIMPAR O BUFFER, E ATRIBUIR O VALOR A VARIÁVEL
+      strEntradaJogador = fVerificarDigito(strEntradaJogador);
+
+      // EXECUTAR ESTE CÓDIGO SE A ENTRADA FOR 1
+      if(strEntradaJogador == '1')
+      {
+        //ATRIBUI O VALOR 2 A VARIÁVEL strAreaAtual (QUE GUARDA O MAPA ATUAL) DE JOGADOR
+        jogador->intAreaAtual = 4;
+        //IR PARA A AREA DE VALOR ARMAZENADO NA VARIÁVEL strAreaAtual DE JOGADOR
+        fChamarArea(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+      }
+
+      // EXECUTAR ESTE CÓDIGO SE A ENTRADA FOR 2
+      if(strEntradaJogador == '2')
+      {
+
+        //ATRIBUI O VALOR 6 A VARIÁVEL strAreaAtual (QUE GUARDA O MAPA ATUAL) DE JOGADOR
+        jogador->intAreaAtual = 6;
+
+        //IR PARA A AREA DE VALOR ARMAZENADO NA VARIÁVEL strAreaAtual DE JOGADOR
+        fChamarArea(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+      }
+    }
+    if(strEntradaJogador == '2')
+    {
+      LimparTela(1);
+      char str21[] = "Seus gritos ecoam pelo vilarejo, alguns moradores já estavam presentes na rua e outros saíram de suas casas ao ouvir seu pedido de socorro. O orc que empunha o machado, ao escutar seus gritos, desvia a atenção do que estava prestes a fazer e olha em sua direção. Ele observa enquanto alguns elfos corajosos tentam chegar até a criança para salvá-la.\n";
+      fTratarString(str21);
+      fCT();
+
+      char str22[] = "Tudo é inútil perante a força daqueles monstros, e você apenas vê em câmera lenta o machado descer sobre o pescoço da elfa. Os moradores ficam chocados com tamanha barbaridade, muitos gritam e choram, mas nada é capaz de apagar de suas memórias o que acabaram de ver.\n";
+      fTratarString(str22);
+      fCT();
+
+      char str23[] = "- Orcs! - Grita o líder deles. - Entrem nas casas e peguem o necessário, matem quem se atrever a se meter no caminho.\n";
+      fTratarString(str23);
+      fCT();
+
+      char str24[] = "  Eles acenam em concordância e se dividem em grupos para invadirem as casas. Um dos grupos se aproxima de você.\n\n";
+      fTratarString(str24);
+
+      printf("[1] Tento impedir eles.\n");
+      printf("[2] Saio da frente e deixo eles passarem.\n\n");
+      printf("Insira um Comando: ");
+
+      strEntradaJogador = fVerificarDigito(strEntradaJogador);
+
+      if(strEntradaJogador == '1')
+      {
+        jogador->intAreaAtual = 7;
+
+        fChamarArea(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+      }
+      if(strEntradaJogador == '2')
+      {
+        jogador->intAreaAtual = 8;
+
+        fChamarArea(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+      }
+
+    }
+
+    if(strEntradaJogador == '3')
+    {
+      fChamarMenuPersonagem(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+    }
+
+  }
+
+  //SE A ENTRADA FOR 2 EXECUTAR ESTE PASSO
+  if(strEntradaJogador == '2')
+  {
+    LimparTela(1);
+
+    char str25[] = "Você se aproxima da porta do quarto dos seus pais e bate algumas vezes nela enquanto chama pelos mesmos. Assim que obtém uma resposta, entra rapidamente e conta sobre o grito que escutou.\n";
+    fTratarString(str25);
+    fCT();
+
+    printf("- Você deve ter imaginado, é melhor ir dormir. - Fala seu pai com uma descrença perceptível na voz.\n");
+
+    printf("  Você abre a boca para replicar, mas outro grito soa do lado de fora. Seus pais se assustam e pulam da cama.\n");
+
+    printf("- Por Maritan, o que será que está acontecendo? - Sua mãe pergunta apreensiva.\n\n");
+
+    printf("[1] Vamos lá fora descobrir.\n");
+    printf("[2] Fiquem aqui que eu irei lá fora ver o que está acontecendo.\n");
+
+     strEntradaJogador = fVerificarDigito(strEntradaJogador);
+
+    // WHILE PARA VERIFICAR SE A ENTRADA NÚMERICA È UMA DAS OPÇÕES VÁLIDAS (1 ou 2)
+    while(strEntradaJogador != '1' && strEntradaJogador != '2' && strEntradaJogador != '3')
+    {
+      printf("--- Comando Inválido ---\n");
+      printf("Insira um comando: ");
+      strEntradaJogador = fVerificarDigito(strEntradaJogador);
+    }
+
+    if(strEntradaJogador == '1')
+    {
+      char str26[] = "Você e seus pais saem para ver o que está acontecendo e se deparam com uma horda de orcs e um grupo de elfos mortos. Ao perceberem que um grupo dos monstros se encaminha em sua direção, sua mãe diz que é melhor entrarem, mas é tarde demais, o grupo os alcança e impedem a entrada de vocês na casa.\n";
+      fTratarString(str26);
+      fCT();
+
+      char str27[] = "- Se algum de vocês quiser permanecer vivo, é melhor não se meterem no nosso caminho. - Avisa o que estava liderando o grupo.\n\n";
+      fTratarString(str27);
+      fCT();
+
+      char str28[] = "- Nos deixe em paz.- Sua mãe suplica, mas isso não é o bastante para comover o coração grotesco de qualquer um dos orcs. Um deles a empurra para tirá-la do caminho e chuta a porta com força causando um estrondo, em seguida o bando invade sua casa. Depois de ajudar sua mãe a levantar, vocês entram na casa para proteger seus irmãos.\n\n";
+      fTratarString(str28);
+      fCT();
+
+      char str29[] = "  Você passa os olhos rapidamente pela sala em busca de algum sinal deles, mas não encontra nada. Desesperada, sua mãe tenta ir até o quarto, mas seu pai a segura pelo braço antes que ela chame a atenção dos orcs. Enquanto isso você se move discretamente até a porta do quarto dos seus irmãos, porém para abruptamente  e prende a respiração quando um orc passa por você, ele, por sua vez, apenas te ignora e segue procurando algo em sua casa que vale a pena roubar.\n";
+      fTratarString(str29);
+      fCT();
+
+      char str31[] = "  Com a quantidade de orcs na sua casa impossibilitando que você se mova livremente, apenas torces para que nenhum dos monstros encontre seus irmãos.\n";
+      fTratarString(str31);
+      fCT();
+
+      char str32[] = "  Após um tempo, que pareceu uma eternidade, os orcs terminam de saquear sua casa e vão embora. Você e sua família correm pela casa em busca das crianças e seu pai as encontra embaixo da cama. Vocês se abraçam e choram juntos.\n";
+      fTratarString(str32);
+      fCT();
+
+      jogador->intAreaAtual = 10;
+
+      fChamarArea(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+    }
+    if(strEntradaJogador == '2')
+    {
+      LimparTela(1);
+      char str33[] = "Seus pais tentam te impedir, mas você pede para que eles não se preocupem e diz que vai tomar cuidado.\n";
+      fTratarString(str33);
+      fCT();
+
+      char str34[] = "Ao chegar à porta, você a abre delicadamente e se assusta com o que ver, vários orcs inundavam as ruas do vilarejo e alguns corpos de elfos jaziam no chão banhados em sangue. Você entra em estado de choque e observa enquanto o líder dos monstros manda os orcs se dividirem e saquearam as casas. Eles acenam com a cabeça e obedecem o comando. Um dos  grupo dos monstros se encaminha em sua direção.\n";
+      fTratarString(str34);
+      fCT();
+
+      printf("[1]Entrar na casa.\n");
+      printf("[2]Impedir a entrada deles.\n");
+      printf("Insira um comando: ");
+
+      strEntradaJogador = fVerificarDigito(strEntradaJogador);
+
+      if(strEntradaJogador == '1')
+      {
+        jogador->intAreaAtual = 9;
+
+        fChamarArea(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+      }
+      if(strEntradaJogador == '2')
+      {
+        jogador->intAreaAtual = 7;
+
+        fChamarArea(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+      }
+
+
+    }
+
+  }
+
+  //SE A ENTRADA FOR 5 EXECUTAR ESTE PASSO (APENAS EXEMPLO)
+  //(NESTE MOMENTO ESTA OPÇÂO NÂO ESTARÁ DISPONIVEL NA VERSÃO FINAL
+  if(strEntradaJogador == '5')
+  {
+    fChamarMenuPersonagem(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+  }
+
+}
+
+void area1p1p1 (tPlayer *jogador, tItem *arrayDeItens, tMonstros *arrayDeMonstros, tHabilidades *arrayDeHabilidades, FILE *arqGameState)
+{
+  LimparTela(1);
+  printf("-Por favor, deixe-os em paz.\n");
+
+  char str1[] = "-HAHAHAHA. Deixe-me pensar. - O líder dos orcs segura o queixo com uma das mãos e faz uma cara exagerada de quem está pensando. - Cheguei à seguinte conclusão: não.-Alguns do bando riem e outros debocham de você enquanto o líder anda de um lado para o outro girando o machado em suas mãos.\n";
+  fTratarString(str1);
+  fCT();
+
+  printf(" -Já que você não quer escolher ninguém, eu o farei por você.\n");
+
+  char str2[] = " Para escapar das mãos do orc que te prendia,você começa a se debater, mas nada adianta, seus esforços são em vão e tudo que te resta é assistir o carrasco dar um fim à vida de cada um dos seus familiares.\n";
+  fTratarString(str2);
+  fCT();
+
+  jogador->intAreaAtual = 5;
+  fChamarArea(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+
+}
+// opção 1.1.2
+void area1p1p2 (tPlayer *jogador, tItem *arrayDeItens, tMonstros *arrayDeMonstros, tHabilidades *arrayDeHabilidades, FILE *arqGameState)
+{
+  char str1[] = " -Pare, seu desgraçado, deixe-os em paz! - Apesar de muito lutar para se libertar das mãos do orc que te prendia, você não obtém sucesso e apenas assiste sua família se desfazer em pedaços.\n";
+  fTratarString(str1);
+  fCT();
+
+  char str2[] = " No dia seguinte, depois de toda desgraça que havia caído sobre o pacífico lar dos elfos, tudo que restou para os sobreviventes foi deixar o conforto do lar, agora maculado com o sangue de inocentes, e partir para a capital do reino em busca de ajuda e um novo recomeço.\n";
+  fTratarString(str2);
+  fCT();
+  jogador->intAreaAtual = 5;
+  fChamarArea(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+}
+// opção 1.2.1
+void area1p2p1 (tPlayer *jogador, tItem *arrayDeItens, tMonstros *arrayDeMonstros, tHabilidades *arrayDeHabilidades, FILE *arqGameState)
+{
+  printf("  Impeço a passagem deles usando meu corpo para bloquear a entrada da minha casa.\n");
+  printf("-Saia da nossa frente, moleque! Ou comece a rezar pela sua vida.\n");
+
+  char str1[] = " Você não podia deixar eles entrarem na sua casa, não podia pôr a vida de sua família em risco. Por isso você não o obedece e permanece em frente à porta.\n";
+  fTratarString(str1);
+  fCT();
+
+  char str2[] =" - Já que você não quer sair por bem, vai sair fatiado. - Ele sorri cinicamente e se prepara para te atacar, porém a porta de sua casa se abre bruscamente e seus pais aparecem.\n";
+  fTratarString(str2);
+
+  char str3[] = " Eles se surpreendem com a quantidade de orcs, mas não se deixam abater pelo número, o que importa para eles é defender sua vida. Eles avançam para sua frente e pedem que você entre na casa. Relutante, você espera, mas os orcs estão com pressa, então eles arrastam você e seus pais para dentro da casa.\n";
+  fTratarString(str3);
+  fCT();
+
+  char str4[] = "- Já que seus pais se ofereceram para receber o castigo no seu lugar, por que não começamos. - Um dos monstros diz e se prepara para matar o seus pais. Preso, você não é capaz de fazer nada além de assistir a morte deles.\n";
+  fTratarString(str4);
+  fCT();
+
+  char str5[] = " Como se tudo isso não fosse o bastante, seus irmãos, ao verem a cena, saem do lugar de onde estavam escondidos e partem para cima dos orcs. Estes, aborrecidos, dilaceram com uma espada o coração de cada uma das crianças e põem um ponto final na curta vida que eles tiveram.\n";
+  fTratarString(str5);
+  fCT();
+
+  char str6[] = " A dor de ter seus entes queridos assassinados faz você gritar e chorar. Sua vida agora estava banhada de tristeza, por isso você implora para que os orcs te matem também.\n";
+  fTratarString(str6);
+  fCT();
+
+  char str7[] = "- Pare de ser um bebê chorão e conviva com a dor de ser um inútil, moleque. - Após um deles dizer isso, você sente uma pancada na cabeça e desmaia.\n";
+  fTratarString(str7);
+  fCT();
+
+  jogador->intAreaAtual = 5;
+  fChamarArea(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+
+}
+//opção 1.2.2
+void area1p2p2 (tPlayer *jogador, tItem *arrayDeItens, tMonstros *arrayDeMonstros, tHabilidades *arrayDeHabilidades, FILE *arqGameState)
+{
+  LimparTela(1);
+  char str1[] = "Você afasta para o lado para permitir a entrada dos orcs em sua casa. Sua família se assusta ao vê-los, mas você se aproxima deles e pede para que se acalmem.\n";
+  fTratarString(str1);
+  fCT();
+
+  char str2[] = "-Fiquem quietos para que eles não se irritem e acabem nos machucando.\n- Você sussurra para seus pais e irmãos.\n";
+  fTratarString(str2);
+  fCT();
+
+  char str3[] = "Depois de uma espera torturante, você finalmente observa os orcs saírem de sua casa levando pertences de sua família que eles julgaram ter alguma serventia. Seus pais soltam um suspiro de alívio e seus irmãos começam a chorar pelo pavor que estavam sentindo.\n";
+  fTratarString(str3);
+  fCT();
+
+  jogador->intAreaAtual = 10;
+  fChamarArea(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+}
+// opçã0 2.2.1
+void area2p2p1 (tPlayer *jogador, tItem *arrayDeItens, tMonstros *arrayDeMonstros, tHabilidades *arrayDeHabilidades, FILE *arqGameState)
+{
+  char str1[] = "Você entra em sua casa apavorado e avisa a seus pais o que acabou de ver. Antes que eles façam algo, os orcs chutam a porta e ela abre com um estrondo.\n";
+  fTratarString(str1);
+
+  char str2[] = " Paralisados, você e sua família observam enquanto um dos orcs toma a dianteira e se aproxima para dizer algo.\n";
+  fTratarString(str2);
+  fCT();
+
+  char str3[] = "- Vou repetir apenas uma vez, então prestem muita atenção. -Ele faz uma pausa como se esperasse uma confirmação. -Se vocês não querem ter minha espada atravessando o coração de vocês, é melhor ficarem quietos no canto e colaborarem conosco. Ele olha nos olhos de cada um de vocês para depois revistar a casa a procura de algo que lhes interesse.\n";
+  fTratarString(str3);
+  fCT();
+
+  printf("Você só observa enquanto eles vasculham sua casa e dá graças à Maritan quando vão embora.\n");
+
+  jogador->intAreaAtual = 10;
+  fChamarArea(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+
+}
+
+void BackToVarbel(tPlayer *jogador, tItem *arrayDeItens, tMonstros *arrayDeMonstros, tHabilidades *arrayDeHabilidades, FILE *arqGameState)
+{
+  LimparTela(1);
+  char strEntradaJogador;
+  char str1[] = "Depois de um tempo andando a esmo, você percebe que está perdido e resolve voltar para o Vilarejo de Varbel para pedir ajuda.\n";
+  fTratarString(str1);
+  fCT();
+
+  char str2[] = "Chegando lá, você se apresenta e diz qual é sua missão:\n"; 
+  fTratarString(str2);
+  char str3[] = "–Eu sou um aventureiro do reino, e estou em uma jornada para proteger todos das invasões dos orcs!\n";
+  fTratarString(str3);
+  fCT();
+
+  char str8[] = " Ainda tensas, as pessoas continuam a te julgar e cochichar coisas ruins ao seu redor, porém uma elfa se aproxima enquanto os outros abrem caminho, elaparece ter influência sobre o local, ao se aproximar tentando acalmar a multidão, a mesma diz:\n";
+  fTratarString(str8);
+
+  char str9[] = "- Desculpe, estamos agitados devido aos ataques ao vilarejo. Fomos saqueados e machucados por alguns monstros que sempre vem daquela direção da floresta.\n";
+  fTratarString(str9);
+  fCT();
+
+  char str10[] = "* VOCÊ COMPREENDE A SITUAÇÃO *\n";
+  fTratarString(str10);
+  fCT();
+
+  char str11[] = "Pouco antes de deixar o vilarejo de Varbel,a elfa te oferece uma pequena ajuda, como uma gratidão por estar tentando proteger os fracos. E pede para que Escolha entre:\n\n";
+  fTratarString(str11);
+  char str12[] = "[1] ESPADA DE FERRO [Ataque Físico]\n";
+  fTratarString(str12);
+  char str13[] = "[2] ADAGA AFIADA [Ataque Físico + Chance de Evasão]\n";
+  fTratarString(str13);
+  char str14[] = "[3] BRINCOS ÉLFICOS [Vida + Armadura]\n";
+  fTratarString(str14);
+
+  SalvarJogo(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+
+  printf("Insira um comando: ");
+  strEntradaJogador = fVerificarDigito(strEntradaJogador);
+  while(strEntradaJogador != '1' && strEntradaJogador != '2' && strEntradaJogador != '3')
+    {
+      printf("--- Comando Inválido ---\n");
+      printf("Insira um comando: ");
+      strEntradaJogador = fVerificarDigito(strEntradaJogador);
+    }
+
+    if(strEntradaJogador == '1')
+    {
+      printf("Você adquiriu ESPADA DE FERRO\n");
+      arrayDeItens[2].bolAdquirido = true;
+      fCT();
+    }
+
+    if(strEntradaJogador == '2')
+    {
+      printf("Você adquiriu ADAGA AFIADA\n");
+      arrayDeItens[3].bolAdquirido = true;
+      fCT();
+    }
+
+    if(strEntradaJogador == '3')
+    {
+      printf("Você adquiriu BRINCOS ÉLFICOS\n");
+      arrayDeItens[4].bolAdquirido = true;
+      fCT();
+    }
+
+    fRestaurarTodosStatus(jogador, arrayDeItens);
+
+    jogador->intAreaAtual = 13;
+    fChamarArea(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+    fCT();
+
+}
+
+
+void areaSaidaDoReino1(tPlayer *jogador, tItem *arrayDeItens, tMonstros *arrayDeMonstros, tHabilidades *arrayDeHabilidades, FILE *arqGameState)
+{
+  char str1[] = " Após perder sua família, Yuno ficou destruído emocionalmente, e durante o seu luto desejou ter forças para poder para proteger os fracos, apertou o peito enquanto se esvaía em lágrimas, almejando poder para nunca mais sentir aquela mesma impotência da noite de massacre, mas nenhuma esperança cairia do céu sem esforços, e por isso decidiu que na manhã seguinte partiria em sua jornada, não por vingança, mas como estigma de crescimento e mérito aos plebeus que eram a tempos maltratados ali.\n";
+  fTratarString(str1);
+  fCT();
+
+  char str2[] = " Você se levanta com a determinação de um sol, com os raios de luz iluminando os seus fios de cabelo e refletindo nos seus olhos a grandiosidade deste céu acima de ti. Veste-se com algumas roupas de couro, toma um copo de água para aliviar a sede e come alguns pães velhos da mesa, pensando em como as suas necessidades seriam cumpridas e as coisas podiam melhorar se jogando no  mundo.\n";
+  fTratarString(str2);
+  fCT();
+
+  char str3[] = " Após sair de casa, cumprimentas algumas pessoas da humilde vila e continua a seguir em direção dos portões do Reino. Na entrada, se depara com dois guardas escoltando e logo os portões se abrem, o rugir das portas sendo abertas e a pressão de ar entrando e acariciando sua pele te fazem pensar no que esperar. Porém, sem querer pensar demais você segue a caminhar.\n";
+  fTratarString(str3);
+  fCT();
+
+  jogador->intAreaAtual = 14;
+  fChamarArea(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+
+}
+
+void areaSaidaDoReino2(tPlayer *jogador, tItem *arrayDeItens, tMonstros *arrayDeMonstros, tHabilidades *arrayDeHabilidades, FILE *arqGameState)
+{
+  LimparTela(1);
+  char str1[] = " Um dia após o trágico acontecimento, todo vilarejo estava em polvorosa devido a saída das pessoas do lugar. Todo horror que os elfos presenciaram marcou para sempre o íntimo de cada um deles. E, tendo em vista o perigo que cercava o local, todos os habitantes partiriam para outro lugar em busca de sossego e segurança.\n";
+  fTratarString(str1);
+  fCT();
+
+  char str2[] = "O mesmo acontecia com a família de Yuno, mas o elfo decidiu tomar um rumo diferente daquele eleito pelo seus pais. Ele queria ser mais forte para proteger aqueles que ama e os inocentes.\n";
+  fTratarString(str2);
+  fCT();
+
+  char str3[] = " Você se levanta com a determinação de um sol, com os raios de luz iluminando os seus fios de cabelo e refletindo nos seus olhos a grandiosidade deste céu acima de ti. Veste-se com algumas roupas de couro, toma um copo de água para aliviar a sede e come alguns pães velhos da mesa, pensando em como as suas necessidades seriam cumpridas e as coisas podiam melhorar se jogando no  mundo.\n";
+  fTratarString(str3);
+  fCT();
+
+  char str4[] = " Após arrumar sua bolsa e sair de casa, você se despede de sua família, apesar da relutância da mesma em aceitar sua escolha, cumprimenta algumas pessoas da humilde vila e parte em sua aventura.\n";
+  fTratarString(str4);
+  fCT();
+
+  jogador->intAreaAtual = 14;
+  fChamarArea(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+
+}
+
+void areaEntradaVilarejoDeVarbel(tPlayer *jogador, tItem *arrayDeItens, tMonstros *arrayDeMonstros, tHabilidades *arrayDeHabilidades, FILE *arqGameState)
+{
+  LimparTela(1);
+  char str1[] = " Ao caminhar alguns quilômetros do reino, você percebe que os arredores são um tanto pacíficos, já que mesmo estando fora do limite das muralhas, a realeza do reino ainda era respeitada, e por isso, não havia muitos perigos ali perto.\n";
+  fTratarString(str1);
+  fCT();
+
+  char str2[] = " *!!! VOCÊ AVISTA ALGO !!!* \n";
+  fTratarString(str2);
+
+  char str3[] = "Correndo, você se aproxima do vilarejo de Varbel, que está um tanto destruído. Casas quebradas, torres de vigia derrubadas e muita poeira no lugar, porém ao adentrar toda aquela bagunça, percebe que ainda há seres vivendo alí. Uma criança corre para perto de um adulto e agarra a perna dele enquanto te encara, parece bastante assustada.\n";
+  fTratarString(str3);
+
+  jogador->intAreaAtual = 12;
+  fChamarArea(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+}
+
+void areaVilarejoDeVarbelPrincipal(tPlayer *jogador, tItem *arrayDeItens, tMonstros *arrayDeMonstros, tHabilidades *arrayDeHabilidades, FILE *arqGameState)
+{
+
+  char str4[] = "Ao se aproximar mais, as pessoas que estavam ali, formam um círculo ao redor de você, e com olhos desesperados pelo medo perguntam:\n\n";
+  fTratarString(str4);
+  char str5[] = "- O que você quer?!\n\n";
+  fTratarString(str5);
+  //fCT();
+  // [ESTRUTURA DE DECISAO]]]
+  char str6[] = "[1] – Eu sou um aventureiro do reino, e estou em uma jornada para proteger todos das invasões causadas pelos orcs!\n";
+  fTratarString(str6);
+  printf("[2] - Ignorar e ir embora.\n\n");
+  printf("Insira um comando: ");
+  char strEntradaJogador;
+  strEntradaJogador = fVerificarDigito(strEntradaJogador);
+
+
+  // WHILE PARA VERIFICAR SE A ENTRADA NÚMERICA È UMA DAS OPÇÕES VÁLIDAS (1 ou 2)
+  while(strEntradaJogador != '1' && strEntradaJogador != '2')
+  {
+    printf("--- Comando Inválido ---\n");
+    printf("Insira um comando: ");
+    strEntradaJogador = fVerificarDigito(strEntradaJogador);
+  }
+
+
+  // SE JOGADOR ESCOLHER 2, FUNCAO DE MAPA COM COMBATE E' CHAMADA E APOS COMBATE FUNCAO DE areaVilarejoDeVarbel1v2 E CHAMADA PARA CONTINUAR DE ONDE O JOGADOR SAIU
+  if(strEntradaJogador == '1')
+  {
+    LimparTela(1);
+
+    char str8[] = "Ainda tensas, as pessoas continuam a te julgar e cochichar coisas ruins ao seu redor, porém uma elfa se aproxima enquanto os outros abrem caminho, elaparece ter influência sobre o local, ao se aproximar tentando acalmar a multidão, a mesma diz:\n";
+    fTratarString(str8);
+
+    char str9[] = "- Desculpe, estamos agitados devido aos ataques ao vilarejo. Fomos saqueados e machucados por alguns monstros que sempre vem daquela direção da floresta.\n";
+    fTratarString(str9);
+
+    char str10[] = "* VOCÊ COMPREENDE A SITUAÇÃO *\n";
+    fTratarString(str10);
+    fCT();
+
+    char str11[] = "Pouco antes de deixar o vilarejo de Varbel, a elfa te oferece uma pequena ajuda, como uma gratidão por estar tentando proteger os fracos. E pede para que Escolha entre:\n\n";
+    fTratarString(str11);
+    fCT();
+    char str12[] = "[1] ESPADA DE FERRO [Ataque Físico]\n";
+    fTratarString(str12);
+    char str13[] = "[2] ADAGA AFIADA [Ataque Físico + Chance de Evasão]\n";
+    fTratarString(str13);
+    char str14[] = "[3] BRINCOS ÉLFICOS [Vida + Armadura]\n";
+    fTratarString(str14);
+
+    SalvarJogo(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+
+    printf("Insira um comando: ");
+    strEntradaJogador = fVerificarDigito(strEntradaJogador);
+    while(strEntradaJogador != '1' && strEntradaJogador != '2' && strEntradaJogador != '3')
+    {
+      printf("--- Comando Inválido ---\n");
+      printf("Insira um comando: ");
+      strEntradaJogador = fVerificarDigito(strEntradaJogador);
+    }
+
+    if(strEntradaJogador == '1')
+    {
+      printf("Você adquiriu ESPADA DE FERRO\n");
+      arrayDeItens[2].bolAdquirido = true;
+      fCT();
+    }
+
+    if(strEntradaJogador == '2')
+    {
+      printf("Você adquiriu ADAGA AFIADA\n");
+      arrayDeItens[3].bolAdquirido = true;
+      fCT();
+    }
+
+    if(strEntradaJogador == '3')
+    {
+      printf("Você adquiriu BRINCOS ÉLFICOS\n");
+      arrayDeItens[4].bolAdquirido = true;
+      fCT();
+    }
+
+
+    fRestaurarTodosStatus(jogador, arrayDeItens);
+
+    jogador->intAreaAtual = 13;
+    fChamarArea(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+    fCT();
+  }
+  if(strEntradaJogador == '2')
+  {
+    jogador->intAreaAtual = 15;
+    fChamarArea(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+  }
+}
+
+void areaVilarejoDeVarbelLoop(tPlayer *jogador, tItem *arrayDeItens, tMonstros *arrayDeMonstros, tHabilidades *arrayDeHabilidades, FILE *arqGameState)
+{
+  char strEntradaJogador;
+  LimparTela(1);
+
+  char str1[] = "Você se esquiva das pessoas e de suas perguntas e vai embora. Depois de alguns minutos de caminhada, você se encontra um pouco distante do vilarejo, e chega em uma bifurcação da estrada.\n";
+  fTratarString(str1);
+  printf("[1] Ir pela direita.\n");
+  printf("[2] Ir pela esquerda.\n");
+  printf("Insira um comando: ");
+
+  strEntradaJogador = fVerificarDigito(strEntradaJogador);
+
+  while(strEntradaJogador != '1' && strEntradaJogador != '2')
+  {
+    printf("--- Comando Inválido ---\n");
+    printf("Insira um comando: ");
+    strEntradaJogador = fVerificarDigito(strEntradaJogador);
+  }
+  if(strEntradaJogador == '1')
+  {
+    LimparTela(1);
+    char str2[] = " Depois de escolher por qual caminho seguir e de andar mais um pouco, você senta sob a sombra de uma árvore e tira da sua bolsa um lanche e o cantil de água. Depois de terminar de comer e com a energia revigorada, você se levanta e percebe que há algo no arbusto do outro lado da estrada. Aproximando-se cautelosamente, percebe que é um Cajado de Cedro\n\n";
+    fTratarString(str2);
+    printf("Você adquiriu CAJADO DE CEDRO\n");
+    arrayDeItens[7].bolAdquirido = true;
+    fCT();
+  }
+  if(strEntradaJogador == '2')
+  { 
+    LimparTela(1);
+    char str3[] = " Depois de escolher por qual caminho seguir e de andar mais um pouco, você senta sob a sombra de uma árvore e tira da sua bolsa um lanche e o cantil de água. Depois de terminar de comer e com a energia revigorada, você se levanta e percebe que há algo no arbusto do outro lado da estrada. Aproximando-se cautelosamente, percebe que é uma Armadura de Estanho\n\n";
+    fTratarString(str3);
+    printf("Você adquiriu ARMADURA DE ESTANHO\n");
+    arrayDeItens[8].bolAdquirido = true;
+    fCT();
+  }
+    
+  fRestaurarTodosStatus(jogador, arrayDeItens);
+    
+  if(GerarValorAleatorio(0,101) < 60)
+  {
+    
+    fBatalhar(2, jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+  }
+  else if(GerarValorAleatorio(0,101) < 80)
+  {
+    fBatalhar(0, jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+  }
+
+  jogador->intAreaAtual = 3;
+  fChamarArea(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+}
+
+void entradaBosqueLamuriante(tPlayer *jogador, tItem *arrayDeItens, tMonstros *arrayDeMonstros, tHabilidades *arrayDeHabilidades, FILE *arqGameState)
+{
+  LimparTela(1);
+  char str1[] = " Após receber uma pequena ajuda e informações sobre as batalhas ocorridas no local você segue em direção à parte escura da floresta, de onde geralmente vinham os ataques, assim, deixando os arredores do reino. Uma sensação ruim te persegue, e após caminhar alguns minutos naquela direção, seus instintos ficam todos alarmados, você ouve barulhos de folhas, como se estivesse sendo perseguido. Observando com o canto do olho tentando se proteger de um possível ataque você continua a caminhar, ao voltar sua atenção para a trilha se encontra em meio a carvalhos negros, e finalmente, surge das sombras um monstro de pele verde vindo em sua direção segurando algo que parece um porrete de madeira.\n";
+  fTratarString(str1);
+  fCT();
+  fRestaurarTodosStatus(jogador, arrayDeItens);
+  fBatalhar(4, jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+
+
+  jogador->intAreaAtual = 11;
+  fChamarArea(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+
+}
+
+void caminhoBosqueLamuriante(tPlayer *jogador, tItem *arrayDeItens, tMonstros *arrayDeMonstros, tHabilidades *arrayDeHabilidades, FILE *arqGameState)
+{
+  char strEntradaJogador;
+  char str1[] = " Após conseguir derrotar aquele Orc violento , voce segue na direção que lhe foi dada, para a parte mais escura da floresta e enquanto anda com a respiração ofegante e algumas feridas abertas, percebe que um nevoeiro começa a subir no lugar, os corvos ali gritam e depois voam e o ambiente parece ecoar barulhos quase como se fossem lamentos e a sensação de medo junto ao frio é de ranger os dentes. Caminhando mais alguns metros, seu pe' engancha em um galho te fazendo tropeçar, e no chao, sua visao fica mais embacada ainda...\n";
+  fTratarString(str1);
+  fCT();
+  char str2[] = " Uma oscilacao na nevoa ocorre e você percebe algo como uma energia quente a' sua frente, aquilo sorri e com um tom de voz ecoante e vazio fala: \n";
+  fTratarString(str2);
+  char str3[] = "- Heh...heh, bem vindo ao Bosque Lamuriante! Voce... ei... voce! Deves escolher que rumo tomar! O Caminho do Tartaro, ou o Caminho do Eter?!\n\n";
+  fTratarString(str3);
+  //ESTRUTURA DE DECISÃO//
+  printf("[1] eu desejo o Caminho do Tartaro! \n");
+  printf("[2] eu desejo o Caminho do Eter! \n\n");
+  printf("Insira um comando: ");
+
+
+  strEntradaJogador = fVerificarDigito(strEntradaJogador);
+
+  while(strEntradaJogador != '1' && strEntradaJogador != '2')
+  {
+    printf("--- Comando Inválido ---\n");
+    printf("Insira um comando: ");
+    strEntradaJogador = fVerificarDigito(strEntradaJogador);
+  }
+
+  fRestaurarTodosStatus(jogador, arrayDeItens);
+
+  if(strEntradaJogador == '1')
+  {
+    jogador->intAreaAtual = 16;
+    fChamarArea(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+  }
+
+  if(strEntradaJogador == '2')
+  {
+    jogador->intAreaAtual = 17;
+    fChamarArea(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+  }
+}
+
+tPlayer areaVilaCepticaPrincipal(tPlayer *jogador, tItem *arrayDeItens, tMonstros *arrayDeMonstros, tHabilidades *arrayDeHabilidades, FILE *arqGameState)
+{
+  LimparTela(1);
+  fRestaurarTodosStatus(jogador, arrayDeItens);
+  char strEntradaJogador;
+  char str1[] = "--- VILA CEPTICA---\n\n";
+  fTratarString(str1);
+  char str2[] = " Ao se aproximar da vila, olhares te intimidam, as pessoas ali tinham uma energia diferente, chamas vermelhas e estranhas acendiam as tochas que iluminavam o local e as pessoas usavam a mesma roupa, parecia uma espécie de uniforme. \n";
+  fTratarString(str2);
+  char str3[] = " Voce avista uma espécie de conversa feita com pessoas sentadas ao redor de uma pedra preta ouvindo um homem vestido de preto, avista também uma cabana que erradia uma luz escarlate que brilha e apaga do seu interior. Você decide:\n\n";
+  fTratarString(str3);
+
+  printf("[1] Sentar e ouvir a conversa Heresiarca\n");
+  printf("[2] Adentrar a cabana luminosa\n");
+  printf("[3] Ficar intimidado com os olhares e dar o fora dali\n");
+  printf("[4] Outros\n");
+  printf("Insira um comando: ");
+
+
+  strEntradaJogador = fVerificarDigito(strEntradaJogador);
+  while(strEntradaJogador != '1' && strEntradaJogador != '2' && strEntradaJogador != '3' && strEntradaJogador != '4')
+  {
+    printf("--- Comando Inválido ---\n");
+    printf("Insira um comando: ");
+    strEntradaJogador = fVerificarDigito(strEntradaJogador);
+  }
+
+  if(strEntradaJogador == '1')
+  {
+    jogador->intAreaAtual = 18;
+    fChamarArea(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+  }
+ if(strEntradaJogador == '2')
+  {
+    jogador->intAreaAtual = 19;
+    fChamarArea(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+  }
+  if(strEntradaJogador == '3')
+  {
+    jogador->intAreaAtual = 22;
+    fChamarArea(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+  }
+  if(strEntradaJogador == '4')
+  {
+    fChamarMenuPersonagem(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+  }
+  return *jogador;
+}
+
+void areaVilaCepticaConversa(tPlayer *jogador, tItem *arrayDeItens, tMonstros *arrayDeMonstros, tHabilidades *arrayDeHabilidades, FILE *arqGameState)
+{
+  LimparTela(1);
+  char str1[] = " Você senta-se ao redor da pedra e ouve o homem de preto falar sobre uma chama e sobre seu ancestral, coisas estranhas seguidas de uma dança ao redor da pedra que estava cheia de cinzas:\n";fTratarString(str1);
+  char str2[] = "- Queridos amigos, o nosso ancestral queimou a própria alma como combustível para a Chama Escarlate e hoje ela é a fonte do nosso poder. Viva! Viva à Fênix!\n\n";
+  fTratarString(str2);
+  char str3[] = "Você acha tudo aquilo estranho e fica um pouco confuso, logo se afastando dali.\n";
+  fTratarString(str3);
+
+  fCT();
+    jogador->intAreaAtual = 16;
+    fChamarArea(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+}
+
+void areaVilaCepticaCabana(tPlayer *jogador, tItem *arrayDeItens, tMonstros *arrayDeMonstros, tHabilidades *arrayDeHabilidades, FILE *arqGameState)
+{
+  LimparTela(1);
+  char strEntradaJogador;
+  char str1[] = " Ao se aproximar da cabana, algo parece se mover lá dentro e a luz para de piscar, como se tivesse percebido sua presença e intenções, e ao abri-la, um homem velho de cabelos brancos, olhos laranja e vestimenta vermelha permanece sentado em um tapete preto enquanto te encara, ele diz: \n";
+  fTratarString(str1);
+  char str2[] = "- Ora ora, um jovem prodígio, mas posso sentir sua aura, o  que busca aqui seu amador?! \n\n";  fTratarString(str2);
+  fCT();
+  char str3[] = "Você fica confuso e sem reação apenas encarando o homem. Ele se levanta, ainda te encarando e diz: \n";
+  fTratarString(str3);
+  char str4[] = "- Caso ainda não tenha entendido, você é um elfo da luz! Porém mesmo com um dom nato para a magia eu não sinto magia alguma vindo de você! \n";fTratarString(str4);
+  char str5[] = "Você então responde:\n\n";
+  fTratarString(str5);
+
+  printf("[1] - Cale a boca velho! - se enfurece e sai da cabana.\n");
+
+  printf("[2] Eu estou lutando justamente pra mudar isto!\n\n");
+  printf("Insira um comando: ");
+
+
+  strEntradaJogador = fVerificarDigito(strEntradaJogador);
+  while(strEntradaJogador != '1' && strEntradaJogador != '2')
+  {
+    printf("--- Comando Inválido ---\n");
+    printf("Insira um comando: ");
+    strEntradaJogador = fVerificarDigito(strEntradaJogador);
+  }
+  if(strEntradaJogador == '1')
+  {
+    printf("*Voce sai da cabana irritado *");
+    jogador->intAreaAtual = 16;
+    fChamarArea(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+  }
+  if(strEntradaJogador == '2')
+  {
+    LimparTela(1);
+    char str8[] = " O homem fica surpreso com a determinação e força das suas palavras, além de sentir uma oscilação nas partículas de mana daquele ambiente. E segue dando uma gargalhada, dizendo:\n";
+    fTratarString(str8);
+    char str9[] = "- Hahahaha! Certo meu jovem, eu irei te dar a benção da chama escarlate, quanto mais forte você se tornar, mais flamejante a sua alma irá ficar!\n";fTratarString(str9);
+    char str10[] = "Pouco depois, ele pergunta se você deseja trocar seu item em uma Luva Carmesim.\n\n";fTratarString(str10);
+    char str11[] = "[1] Trocar item por Luva Carmesim (trocar o item de Varbel pela luva, vai aumentar o potencial de dano mágico)\n";
+    fTratarString(str11);
+    char str12[] = "[2] Permanecer com item\n";
+    fTratarString(str12);
+
+    strEntradaJogador = fVerificarDigito(strEntradaJogador);
+    while(strEntradaJogador != '1' && strEntradaJogador != '2')
+    {
+      printf("--- Comando Inválido ---\n");
+      printf("Insira um comando: ");
+      strEntradaJogador = fVerificarDigito(strEntradaJogador);
+    }
+    if(strEntradaJogador == '1')
+    {
+      //Troca a Arma base pela Luva Carmesim//
+       printf("\n\n *Você troca a arma base pelo Anel de Raios*\n\n");
+      if(arrayDeItens[2].bolAdquirido == true)
+      {
+        arrayDeItens[2].bolAdquirido = false;
+        arrayDeItens[5].bolAdquirido = true;
+      }
+      if(arrayDeItens[3].bolAdquirido == true)
+      {
+        arrayDeItens[3].bolAdquirido = false;
+        arrayDeItens[5].bolAdquirido = true;
+      }
+      if(arrayDeItens[4].bolAdquirido == true)
+      {
+        arrayDeItens[4].bolAdquirido = false;
+        arrayDeItens[5].bolAdquirido = true;
+      }
+
+    }
+
+    if(strEntradaJogador == '2')
+    {
+      //Muda nada, permanece com a Arma base//
+      printf("\n\n *Você permanece com os seus equipamentos\n\n");
+    }
+
+  char str13[] = "  Após isso, ele faz algumas pronuncias estranhas e você sente como se o ambiente se conectasse a você, seu peito aquece como uma chama, porém apesar disso, você fica aflito e sai do local enquanto o homem continua a dar risadas estranhas.\n";
+  fTratarString(str13);
+
+
+  //Personagem adquire Benção da Chama Escarlate//
+  //Volta para a estrutura de decisão//
+    SalvarJogo(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+    jogador->intAreaAtual = 16;
+    fChamarArea(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+  //OBS: Essa benção basicamente permite que ele utilize magias de fogo de cor escarlate com o passar dos leveis.//
+  }
+}
+
+void areaVilaEruditaPrincipal(tPlayer *jogador, tItem *arrayDeItens, tMonstros *arrayDeMonstros, tHabilidades *arrayDeHabilidades, FILE *arqGameState)
+{
+  LimparTela(1);
+  fRestaurarTodosStatus(jogador, arrayDeItens);
+  char strEntradaJogador;
+  char str1[] = "VILA ERUDITA\n\n";
+  fTratarString(str1);
+  char str2[] = " Ao se aproximar da vila, olhares te acolhem, as pessoas ali tinham uma energia diferente, luzes estranhas acendem as tochas, além dos raios que iluminam o local e as pessoas usavam a mesma roupa, parecia uma espécie de uniforme. \n";
+  fTratarString(str2);
+  char str3[] = " Você avista uma espécie de conversa feita com pessoas sentadas ao redor de uma mesa ouvindo um homem vestido de branco falando sobre brilhos no céu, avista também uma cabana que erradia uma luz dourada que brilha e apaga de acordo com os raios extravagantes no céu. Você decide: \n\n";
+  fTratarString(str3);
+  char str4[] = "[1] Sentar e ouvir a conversa Filosófica \n";
+  fTratarString(str4);
+  char str5[] = "[2] Adentrar a cabana luminosa \n";fTratarString(str5);
+  char str6[] = "[3] Cumprimentar as pessoas dali e ir embora \n";
+  fTratarString(str6);
+  char str7[] = "[4] Outros";
+  fTratarString(str7);
+
+  strEntradaJogador = fVerificarDigito(strEntradaJogador);
+  while(strEntradaJogador != '1' && strEntradaJogador != '2' && strEntradaJogador != '3' && strEntradaJogador != '4')
+  {
+    printf("--- Comando Inválido ---\n");
+    printf("Insira um comando: ");
+    strEntradaJogador = fVerificarDigito(strEntradaJogador);
+  }
+
+  if(strEntradaJogador == '1')
+  {
+    jogador->intAreaAtual = 20;
+    fChamarArea(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+  }
+ if(strEntradaJogador == '2')
+  {
+    jogador->intAreaAtual = 21;
+    fChamarArea(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+  }
+  if(strEntradaJogador == '3')
+  {
+    jogador->intAreaAtual = 22;
+    fChamarArea(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+  }
+  if(strEntradaJogador == '4')
+  {
+    fChamarMenuPersonagem(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+  }
+}
+
+void areaVilaEruditaConversa(tPlayer *jogador, tItem *arrayDeItens, tMonstros *arrayDeMonstros, tHabilidades *arrayDeHabilidades, FILE *arqGameState)
+{
+  LimparTela(1);
+  char str1[] = " Você senta-se ao redor da mesa e se sente acolhido enquanto ouve o homem de branco falar sobre uma luz celestial e sobre um raio, coisas estranhas seguidas de uma dança que iluminava os céus: \n";
+  fTratarString(str1);
+  char str2[] = "- Queridos irmãos, o nosso espírito etéreo é a maior fonte do nosso poder, ao desenvolvermos isso podemos oscilar os céus ao nosso redor e controlar raios como se fossem armas. Viva! Viva aos sábios que atingiram o ápice do Éter! \n";
+  fTratarString(str2);
+  char str3[] = "Você acha lindo, porém um pouco confuso e logo se afasta dali. \n";
+  fTratarString(str3);
+
+  fCT();
+    jogador->intAreaAtual = 17;
+    fChamarArea(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+
+}
+void areaVilaEruditaCabana(tPlayer *jogador, tItem *arrayDeItens, tMonstros *arrayDeMonstros, tHabilidades *arrayDeHabilidades, FILE *arqGameState)
+{
+  LimparTela(1);
+  char strEntradaJogador;
+  char str1[] = " Ao se aproximar da cabana, algo parece se mover lá dentro e a luz para de oscilar de acordo com os raios, como se tivesse percebido sua presença e intenções, e ao abri-la, um homem velho de cabelos brancos, olhos dourados e vestimenta branca permanece sentado em uma almofada dourada, enquanto te encara, ele diz: \n";
+  fTratarString(str1);
+  char str2[] = "- Ora ora, um elfo da luz, meu jovem eu posso sentir sua aura, o  que busca aqui ? \n";fTratarString(str2);
+  char str3[] = " Você se sente acolhido, porém sem reação apenas encarando o homem. Ele se levanta, ainda te encarando e diz: \n";
+  fTratarString(str3);
+  char str4[] = "- Caso ainda não tenha entendido,  você é um elfo da luz. Porém mesmo com um dom nato tão generoso para a magia eu não sinto energia alguma vindo de você. \n";
+  fTratarString(str4);
+  char str5[] = "Você então responde:\n\n";
+  fTratarString(str5);
+  char str6[] = "[1] – Desculpe, eu não sabia! - se entristece sai da cabana. \n";
+  fTratarString(str6);
+ // (If 1 = Você sai da cabana e volta para as 3 opções anteriores. )//
+  char str7[]= "[2] Eu estou lutando justamente pra mudar isto!\n";
+  fTratarString(str7);
+//(If 2 = Segue a conversa.)//
+
+  strEntradaJogador = fVerificarDigito(strEntradaJogador);
+  while(strEntradaJogador != '1' && strEntradaJogador != '2')
+  {
+    printf("--- Comando Inválido ---\n");
+    printf("Insira um comando: ");
+    strEntradaJogador = fVerificarDigito(strEntradaJogador);
+  }
+  if(strEntradaJogador == '1')
+  {
+    jogador->intAreaAtual = 17;
+    fChamarArea(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+  }
+  if(strEntradaJogador == '2')
+  {
+  char str8[] = " O generoso homem fica surpreso com a determinação das suas palavras, além de sentir uma oscilação nas partículas de mana daquele ambiente. E segue dando um sorriso gentil, dizendo:\n";
+  fTratarString(str8);
+  char str9[] = "- Hehe! Certo meu jovem, eu irei te dar a benção da luz celestial, quanto mais forte a sua alma se tornar, mais enérgica a sua mana vai ficar! \n"
+  ;fTratarString(str9);
+  char str10[] = "  Pouco depois, ele pergunta se você deseja trocar seu item em um Anel de Raios. \n\n"
+  ;fTratarString(str10);
+  char str11[] = "[1] Trocar item por Anel de Raios (trocar o item de Varbel pelo anel vai aumentar o potencial de dano mágico)\n";
+  fTratarString(str11);
+  char str12[] = "[2] Permanecer com item\n";
+  fTratarString(str12);
+    strEntradaJogador = fVerificarDigito(strEntradaJogador);
+    while(strEntradaJogador != '1' && strEntradaJogador != '2')
+    {
+      printf("--- Comando Inválido ---\n");
+      printf("Insira um comando: ");
+      strEntradaJogador = fVerificarDigito(strEntradaJogador);
+    }
+    if(strEntradaJogador == '1')
+    {
+      //Troca a Arma base pelo Anel de Raios//
+      printf("\n\n *Você troca a arma base pelo Anel de Raios*\n\n");
+      if(arrayDeItens[2].bolAdquirido == true)
+      {
+        arrayDeItens[2].bolAdquirido = false;
+        arrayDeItens[6].bolAdquirido = true;
+      }
+      if(arrayDeItens[3].bolAdquirido ==true)
+      {
+        arrayDeItens[3].bolAdquirido = false;
+        arrayDeItens[6].bolAdquirido = true;
+      }
+      if(arrayDeItens[4].bolAdquirido == true)
+      {
+        arrayDeItens[4].bolAdquirido = false;
+        arrayDeItens[6].bolAdquirido = true;
+      }
+
+    }
+    if(strEntradaJogador == '2')
+    {
+      printf("\n\n *Você permanece com os seus equipamentos\n\n");
+    }
+
+  char str13[] = "  Após isso, ele faz algumas rezas estranhas e você sente como se os céus se conectasse a você, seu peito vibra como um raio, porém apesar disso, você fica confuso e sai do local depois de agradecer. \n";
+  fTratarString(str13);
+
+  //Personagem adquire Benção da Luz Celestial//
+  //Volta para a estrutura de decisão//
+    SalvarJogo(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+    jogador->intAreaAtual = 17;
+    fChamarArea(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+  //OBS: Essa benção basicamente permite que ele utilize magias de raio de cor dourada com o passar dos leveis.//
+  }
+}
+
+void areaSaidaDoBosque(tPlayer *jogador, tItem *arrayDeItens, tMonstros *arrayDeMonstros, tHabilidades *arrayDeHabilidades, FILE *arqGameState)
+{
+  SalvarJogo(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+  char strEntradaJogador;
+  LimparTela(1);
+  char str1[] = " Após sair da vila, você sente que tem algo diferente dentro de si, mas ainda não achou uma explicação para isso, por isso decide ignorar e continuar a caminhar em direção ao seu destino. \n\n";
+  fTratarString(str1);
+  fCT();
+	char str2[] = " Caminhando alguns quilômetros de distancia da vila você encontra uma trilha de pistas, algumas espadas quebradas e ensanguentadas juntas de um cheiro horrível preenchiam o lugar, ao andar mais dentre aquelas pistas encontras uma espécie de passagem para algo que parecia um vale. Então você: \n\n";
+  fTratarString(str2);
+	char str3[] = "[1] Continua a trilha de pistas \n";
+	fTratarString(str3);
+	char str4[] = "[2] Vai para o vale \n";
+  fTratarString(str4);
+  char str5[] = "[3] Outros\n\n";
+  fTratarString(str5);
+  printf("Insira um comando: ");
+
+    strEntradaJogador = fVerificarDigito(strEntradaJogador);
+    while(strEntradaJogador != '1' && strEntradaJogador != '2' && strEntradaJogador != '3')
+    {
+      printf("--- Comando Inválido ---\n");
+      printf("Insira um comando: ");
+      strEntradaJogador = fVerificarDigito(strEntradaJogador);
+    }
+    if(strEntradaJogador == '1')
+    {
+      // CAMINHO ARDILOSO
+      jogador->intAreaAtual = 23;
+      fChamarArea(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+    }
+    if(strEntradaJogador == '2')
+    {
+      //RAVINA ECOANTE
+      jogador->intAreaAtual = 24;
+      fChamarArea(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+    }
+     if(strEntradaJogador == '3')
+    {
+       fChamarMenuPersonagem(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+    }
+
+
+}
+
+void areaCaminhoArdiloso(tPlayer *jogador, tItem *arrayDeItens, tMonstros *arrayDeMonstros, tHabilidades *arrayDeHabilidades, FILE *arqGameState)
+{
+  char strEntradaJogador;
+  LimparTela(1);
+  printf("--- CAMINHO ARDILOSO ---\n\n");
+  char str2[] = " Você segue caminhando pela trilha, e após alguns metros ouve passos, acompanha-os ate encontrar dois Orcs que seguram lanças carregando corpos nos ombros, parece a oportunidade perfeita para se aproveitar das suas aberturas. \n\n";
+  fTratarString(str2);
+  //(A opção de furtividade só aparece dependendo da Destreza do player)
+  printf("Então você: \n");
+	printf("[1] Ataca os Orcs (Batalha)\n");
+  //*APRENDIZAGEM DE SKILL DE ACORDO COM O CAMINHO ESCOLHIDO
+  //*GANHO XP//
+	printf("[2] Passa no modo furtivo \n\n");
+
+  printf("Insira um comando: ");
+
+    strEntradaJogador = fVerificarDigito(strEntradaJogador);
+    while(strEntradaJogador != '1' && strEntradaJogador != '2' && strEntradaJogador != '3')
+    {
+      printf("--- Comando Inválido ---\n");
+      printf("Insira um comando: ");
+      strEntradaJogador = fVerificarDigito(strEntradaJogador);
+    }
+    if(strEntradaJogador =='1')
+    {
+      LimparTela(1);
+      fBatalhar(4, jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+      fBatalhar(3, jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+
+      if(arrayDeItens[2].bolAdquirido == true)
+      {
+        printf("\n\nParabens você conquistou a habilidade Perfuracao!\n\n");
+        arrayDeHabilidades[0].bolAdquirido = true;
+      }
+      if(arrayDeItens[3].bolAdquirido == true)
+      {
+        printf("\n\nParabens você conquistou a habilidade Perfuracao!\n\n");
+        arrayDeHabilidades[0].bolAdquirido = true;
+      }
+      if(arrayDeItens[4].bolAdquirido == true)
+      {
+        printf("\n\nParabens você conquistou a habilidade Perfuracao!\n\n");
+        arrayDeHabilidades[0].bolAdquirido = true;
+      }
+      if(arrayDeItens[5].bolAdquirido == true)
+      {
+        printf("\n\nParabens você conquistou a habilidade Agulha da Chama Escarlate!\n\n");
+        arrayDeHabilidades[4].bolAdquirido = true;
+      }//se cuida ai bixo, to indo vou tentar nem que eu n durma ;-;
+      if(arrayDeItens[6].bolAdquirido == true)
+      {
+        printf("\n\nParabens você conquistou a habilidade Alabarda Celestial!\n\n");
+        arrayDeHabilidades[8].bolAdquirido = true;
+      }
+      jogador->intAreaAtual = 25;
+      fChamarArea(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+    }
+
+    if(strEntradaJogador == '2')
+    {
+      jogador->intAtributos[4] = jogador->intAtributos[4]+5;
+
+      fRestaurarTodosStatus(jogador, arrayDeItens);
+      jogador->intAreaAtual = 25;
+      fChamarArea(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+    }
+
+
+}
+void areaRavinaEcoante(tPlayer *jogador, tItem *arrayDeItens, tMonstros *arrayDeMonstros, tHabilidades *arrayDeHabilidades, FILE *arqGameState)
+{
+  LimparTela(1);
+  char str1[] = " Você segue se esgueirando pela passagem até chegar em um desfiladeiro, repleto de poeira e trilhas de sangue, andando cuidadosamente você se depara com uma espécie de caverna que libera um odor terrível.\n";
+  fTratarString(str1);
+  fCT();
+  printf("RAVINA ECOANTE\n\n");
+  char str3[] = " Ao chegar na frente da caverna você percebe um cheiro terrível e procura saber o motivo daquilo, cuidadosamente se move pelo lugar que parece úmido e cheio de cristais de gelo no teto.\n";
+  fTratarString(str3);
+  if(GerarValorAleatorio(0,101) < 75)
+  {
+    printf("Um ser baixo e fetido surge das sombras sorrindo...\n\n");
+    fRestaurarTodosStatus(jogador, arrayDeItens);
+    fBatalhar(7, jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+
+     if(arrayDeItens[2].bolAdquirido == true)
+      {
+        printf("\n\nParabens você conquistou a habilidade Punicao Ascendente!\n\n");
+        arrayDeHabilidades[1].bolAdquirido = true;
+      }
+      if(arrayDeItens[3].bolAdquirido == true)
+      {
+        printf("\n\nParabens você conquistou a habilidade Punicao Ascendente!\n\n");
+        arrayDeHabilidades[1].bolAdquirido = true;
+      }
+      if(arrayDeItens[4].bolAdquirido == true)
+      {
+        printf("\n\nParabens você conquistou a habilidade Punicao Acendente!\n\n");
+        arrayDeHabilidades[1].bolAdquirido = true;
+      }
+
+    if(arrayDeItens[5].bolAdquirido == true)
+      {
+        printf("\n\nParabens você conquistou a habilidade Pequena Orbe Solar!\n\n");
+        arrayDeHabilidades[5].bolAdquirido = true;
+      }
+
+      if(arrayDeItens[6].bolAdquirido == true)
+      {
+        printf("\n\nParabens você conquistou a habilidade Faina Eletrica!\n\n");
+        arrayDeHabilidades[9].bolAdquirido = true;
+      }
+  }
+  char str4[] = " Ao tropeçar em uma pedra, você percebe que o lugar um dos cristais despenca do teto e cai perto de ti, seguindo com um rugido estrondoso que ecoa dentro da caverna. Era um Minotauro, uma raça de monstros que raramente era encontrado. Ele avança em sua direção enquanto você se recompõe.\n";
+  fTratarString(str4);
+  fCT();
+  //BATALHA//
+  fRestaurarTodosStatus(jogador, arrayDeItens);
+  fBatalhar(1, jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+ //TROCA O COURO DA ROUPA PELO COURO DE MINOTAURO//
+  arrayDeItens[9].bolAdquirido = true;
+  printf("\n\nParabens você recebeu a Vestimenta da Rebelião do Caos!\n\n");
+  fRestaurarTodosStatus(jogador, arrayDeItens);
+  //DROP ITEM RARO 40% OU 50%//
+  if(GerarValorAleatorio(0,101) < 50)
+    {
+      printf("\n\n!!! ITEM RARO !!!\n\n");
+      printf("Você recebeu a Lamina de Repulsão Sombria");
+      arrayDeItens[10].bolAdquirido = true;
+    }
+
+  char str5[] = " Você sai da caverna após descansar e retorna à trilha de pistas, segue caminhando pela trilha...\n";
+  fTratarString(str5);
+  fRestaurarTodosStatus(jogador, arrayDeItens);
+  SalvarJogo(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+  jogador->intAreaAtual = 23;
+  fChamarArea(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+}
+
+void areaEstradaDeGeffen(tPlayer *jogador, tItem *arrayDeItens, tMonstros *arrayDeMonstros, tHabilidades *arrayDeHabilidades, FILE *arqGameState)
+{
+  LimparTela(1);
+  char strEntradaJogador;
+  char str1[] = "--- ESTRADA DE GEFFEN ---\n\n";
+  fTratarString(str1);
+  char str2[] = " Após passar pela patrulha dos Orcs você chega a um local calmo, porém ainda perigoso, se aproximando cada vez mais da Cidade de Geffen que era onde os Orcs residiam. Caminhando cautelosamente enquanto ouvia o ambiente e sentia a mana dele, você encontra mais uma vez caminhos divergentes, e escolhe: \n\n";
+  fTratarString(str2);
+  char str3[] = "[1] Ir para Arredores de Geffen (farm) \n";
+  fTratarString(str3);
+  char str4[] = "[2] Seguir \n";
+  fTratarString(str4);
+  char str5[] = "[3] Outros \n\n";
+  fTratarString(str5);
+  printf("Insira um comando: ");
+  
+  strEntradaJogador = fVerificarDigito(strEntradaJogador);
+    while(strEntradaJogador != '1' && strEntradaJogador != '2' && strEntradaJogador != '3')
+    {
+      printf("--- Comando Inválido ---\n");
+      printf("Insira um comando: ");
+      strEntradaJogador = fVerificarDigito(strEntradaJogador);
+    }
+    if(strEntradaJogador == '1')
+    {
+      jogador->intAreaAtual = 26;
+      fChamarArea(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+    }
+    if(strEntradaJogador == '2')
+    {
+       jogador->intAreaAtual = 27;
+      fChamarArea(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+    }
+    if(strEntradaJogador == '3')
+    {
+       fChamarMenuPersonagem(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+    }
+}
+
+void areaFarmDeGeffen(tPlayer *jogador, tItem *arrayDeItens, tMonstros *arrayDeMonstros, tHabilidades *arrayDeHabilidades, FILE *arqGameState)
+{
+  char strEntradaJogador;
+  LimparTela(1);
+  char str1[] = "--- ARREDORES DE GEFFEN ---\n\n";
+  fTratarString(str1);
+  char str2[] = " Voce escolhe o caminho com a vertente mais a direita e continua a segui-lo, porém, alguns metros depois enxerga vários Javalís Selvagens, monstros medianos, e sente uma sensacao de perigo entao voce: \n\n";
+  //1.1 Após a luta perguntar se ele quer matar outro//
+  fTratarString(str2);
+  printf("[1] Luta \n");
+  printf("[2] Segue \n");
+  printf("[3] Outros \n");
+  printf("[4] Descansar \n");
+  strEntradaJogador = fVerificarDigito(strEntradaJogador);
+  while(strEntradaJogador != '1' && strEntradaJogador != '2' && strEntradaJogador != '3' && strEntradaJogador != '4')
+  {
+    printf("--- Comando Inválido ---\n");
+    printf("Insira um comando: ");
+    strEntradaJogador = fVerificarDigito(strEntradaJogador);
+  }
+  
+  while(strEntradaJogador == '1')
+  {
+    int i;
+    i++;
+    //BATALHA ALEATORIA COM MONSTROS FORTES A CADA 4 FARMS FRACOS//
+    fBatalhar(0, jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+    SalvarJogo(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+    if(i==5)
+    {
+      fBatalhar(8, jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+
+      if(arrayDeItens[2].bolAdquirido == true)
+      {
+        printf("\n\nParabens você conquistou a habilidade Lamina Eterna!\n\n");
+          arrayDeHabilidades[3].bolAdquirido = true;
+      }
+      if(arrayDeItens[3].bolAdquirido == true)
+      {
+        printf("\n\nParabens você conquistou a habilidade Lamina Eterna!\n\n");
+        arrayDeHabilidades[3].bolAdquirido = true;
+      }
+      if(arrayDeItens[4].bolAdquirido == true)
+      {
+        printf("\n\nParabens você conquistou a habilidade Lamina Eterna!\n\n");
+        arrayDeHabilidades[3].bolAdquirido = true;
+      }
+      if(arrayDeItens[5].bolAdquirido == true)
+      {
+        printf("\n\nParabens você conquistou a habilidade Sol Cruel!\n\n");
+        arrayDeHabilidades[7].bolAdquirido = true;
+      }
+      if(arrayDeItens[6].bolAdquirido == true)
+      {
+        printf("\n\nParabens você conquistou a habilidade Mergulho Espiritual: Castigo Divino!\n\n");
+        arrayDeHabilidades[11].bolAdquirido = true;
+      }
+    }
+
+    printf("[1] Luta \n");
+    printf("[2] Segue \n");
+    printf("[3] Outros \n");
+    printf("[4] Descansar \n");
+    strEntradaJogador = fVerificarDigito(strEntradaJogador);
+      
+    while(strEntradaJogador != '1' && strEntradaJogador != '2' && strEntradaJogador != '3' && strEntradaJogador != '4')
+    {
+    printf("--- Comando Inválido ---\n");
+    printf("Insira um comando: ");
+    strEntradaJogador = fVerificarDigito(strEntradaJogador);
+    }
+
+    if(strEntradaJogador == '2')
+    {
+      jogador->intAreaAtual = 27;
+      LimparTela(1);
+      fChamarArea(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+    }
+
+    if(strEntradaJogador == '3')
+    {
+      fChamarMenuPersonagem(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+    }
+
+    if(strEntradaJogador == '4')
+    {
+      char str7[] = "  Voce descansa apos a exaustiva batalha e consegue recuperar suas energias.\n";
+      fTratarString(str7);
+      fCT();
+      fRestaurarTodosStatus(jogador, arrayDeItens);
+      SalvarJogo(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades,arqGameState);
+    }
+  }
+
+  if(strEntradaJogador == '2')
+  {
+    jogador->intAreaAtual = 27;
+    LimparTela(1);
+    fChamarArea(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+  }
+
+  if(strEntradaJogador == '3')
+  {
+    fChamarMenuPersonagem(jogador, arrayDeItens, arrayDeMonstros,arrayDeHabilidades, arqGameState);
+  }
+
+  if(strEntradaJogador == '4')
+  {
+    char str7[] = "  Voce descansa apos a exaustiva batalha e consegue recuperar suas energias.\n";
+    fTratarString(str7);
+    fCT();
+    fRestaurarTodosStatus(jogador, arrayDeItens);
+    SalvarJogo(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades,arqGameState);
+    jogador->intAreaAtual = 26;
+    fChamarArea(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+  }
+}
+
+
+
+void areaEntradaDeGeffen(tPlayer *jogador, tItem *arrayDeItens, tMonstros *arrayDeMonstros, tHabilidades *arrayDeHabilidades, FILE *arqGameState)
+{
+  SalvarJogo(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+  char strEntradaJogador;
+  LimparTela(1);
+  char str1[] = "ENTRADA DE GEFFEN \n\n";
+  fTratarString(str1);
+  char str2[] = " Você segue caminhando cautelosamente e chega na escolta, finalmente esta mais próximo do que nunca de resolver todo esse impasse, sua alma grita para provar a si mesmo de que não é mais aquela pessoa impotente. Dois guardas da escolta te avistam se aproximando da Cidade que não parece ter tanta proteção, e começam a avançar em sua direção. \n";
+  fTratarString(str2);
+  //BATALHA COM GANHO DE XP//
+  fRestaurarTodosStatus(jogador, arrayDeItens);
+  fBatalhar(5, jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+  fBatalhar(5, jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+  //SKILL NOVA//
+       if(arrayDeItens[2].bolAdquirido == true)
+      {
+        printf("\n\nParabens você conquistou a habilidade Investida Fantasma!\n\n");
+        arrayDeHabilidades[2].bolAdquirido = true;
+      }
+      if(arrayDeItens[3].bolAdquirido == true)
+      {
+        printf("\n\nParabens você conquistou a habilidade Investida Fantasma!\n\n");
+        arrayDeHabilidades[2].bolAdquirido = true;
+      }
+      if(arrayDeItens[4].bolAdquirido == true)
+      {
+        printf("\n\nParabens você conquistou a habilidade Investida Fantasma!\n\n");
+        arrayDeHabilidades[2].bolAdquirido = true;
+      }
+
+      if(arrayDeItens[5].bolAdquirido == true)
+      {
+        printf("\n\nParabens você conquistou a habilidade Garra Carmesim!\n\n");
+        arrayDeHabilidades[6].bolAdquirido = true;
+      }
+
+      if(arrayDeItens[6].bolAdquirido == true)
+      {
+        printf("\n\nParabens você conquistou a habilidade Saraiva de Laminas Relampago!\n\n");
+        arrayDeHabilidades[10].bolAdquirido = true;
+      }
+
+  SalvarJogo(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+  printf("  Apos a cansativa batalha voce decide: \n");
+  printf("[1] Adentrar a Vila de Geffen \n");
+  printf("[2] Descansar\n");
+  printf("[3] Outros\n\n");
+  printf("Insira um comando: ");
+  strEntradaJogador = fVerificarDigito(strEntradaJogador);
+    while(strEntradaJogador != '1' && strEntradaJogador != '2' && strEntradaJogador != '3')
+    {
+      printf("--- Comando Inválido ---\n");
+      printf("Insira um comando: ");
+      strEntradaJogador = fVerificarDigito(strEntradaJogador);
+    }
+    if(strEntradaJogador == '1')
+    {
+      //BATALHA ALEATORIA COM MONSTROS FORTES A CADA 4 FARMS FRACOS//
+      SalvarJogo(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+      jogador->intAreaAtual = 28;
+      fChamarArea(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+    }
+    if(strEntradaJogador == '2')
+    {
+      LimparTela(1);
+      char str7[] = " Voce descansa apos aquela exaustiva batalha e consegue recuperar suas energias.\n";
+      fTratarString(str7);
+      char str8[] = " Após se recuperar você decide adentrar a vila de Geffen.\n";
+      fTratarString(str8);
+      fCT();
+      
+      fRestaurarTodosStatus(jogador, arrayDeItens);
+      SalvarJogo(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+      jogador->intAreaAtual = 28;
+      fChamarArea(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+    }
+    if(strEntradaJogador == '3')
+    {
+       fChamarMenuPersonagem(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+    }
+}
+
+void areaBossBattle(tPlayer *jogador, tItem *arrayDeItens, tMonstros *arrayDeMonstros, tHabilidades *arrayDeHabilidades, FILE *arqGameState)
+{
+  LimparTela(1);
+  char str1[] = " --- A CIDADE DE GEFFEN ---\n\n";
+  fTratarString(str1);
+  char str2[] = " Após uma luta insana com os guarda-costas daquele local, você adentra a cidade que parece inofensiva, os Orcs crianças na verdade sao pacificos como quaisquer outros seres, porem sao selvagens, haviam seres fracos e indefesos ali também, porem essa realidade deixava você confuso. \n\n";
+  fTratarString(str2);
+  char str3[] = "Era difícil de acreditar que os seres que estavam causando tanto caos também convivessem calmamente, mas a calmaria só durou ate ouvir o ranger dos metais sendo arrastados no chão enquanto um urro estrondoso ecoava com uma gargalhada, uma figura enorme se aproximava.\n\n";
+  fTratarString(str3);
+  char str4[] = "...\n";
+  fTratarString(str4);
+  fCT();
+  char str5[] = "!! O ARAUTO DO CAOS !! \n\n";
+  fTratarString(str5);
+  char str6[]= "  Era o Lorde Orc Gar’Tul, um dos carrascos mais conhecidos no reino pela sua forma de lidar com inimigos, ele tinha fama por destruir o que era precioso para os outros. \n";
+  fTratarString(str6);
+  char str7[] = " Varios Orcs de armadura te cercam, porem o Lorde Gar’Tul orgulhoso e cheio de si, pede que se afastem, seria uma luta de um contra um. E ele não queria saber os seus motivos. Ele so queria a chacina e o prazer da luta. \n";
+  fTratarString(str7);
+  char str8[] = " Dentro de um circulo gigante de pedra com tochas, o duelo final e' dado, voce contra Gar’Tul que utiliza uma armadura de couro grosso e uma maça de pedra com pontas.\n";
+  fTratarString(str8);
+  char str9[] = " Um grito de guerra dos dois combatentes dá inicio a luta!\n";
+  fTratarString(str9);
+
+  //*BOSS FINAL*//
+  fRestaurarTodosStatus(jogador, arrayDeItens);
+  fBatalhar(6, jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+  //*GANHO DE XP*//
+
+  //SE ELE VENCER A LUTA VAI AVANÇAR PARA A AREA DAS CONQUISTAS//
+    fRestaurarTodosStatus(jogador, arrayDeItens);
+    SalvarJogo(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+  //SE ELE MATAR O BOSS//
+    jogador->intAreaAtual = 29;
+    fChamarArea(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+}
+
+void areaConquistasYuno(tPlayer *jogador, tItem *arrayDeItens, tMonstros *arrayDeMonstros, tHabilidades *arrayDeHabilidades, FILE *arqGameState)
+{
+  LimparTela(1);
+  char str1[] = "--- CONQUISTAS NOBRES ---\n\n";
+  fTratarString(str1);
+  char str2[] = " Após a intensa e sangrenta batalha, você finalmente conseguiu, provou pra si mesmo que era capaz de proteger as pessoas e os fracos, mas não conseguiu dar o golpe final em Gar’Tul, que perdeu seu posto de lorde por perder para um elfo, de acordo com a ideologia dos Orcs, o mais forte dos lutadores deve ser idolatrado com um pedido e ate mesmo se desejado, como líder, e por isso você conseguiu a paz entre a Cidade de Geffen e o seu reino, voltando para sua cidade você pôde reportar aos nobres que a paz havia sido estabelecida, e o que havia acontecido no decorrer da sua jornada.\n";
+  fTratarString(str2);
+  fCT();
+  char str3[] = " Os nobres ficaram surpresos por um plebeu ter passado pelo Bosque Lamuriante e saído vivo, já que os cavaleiros que eram enviados se perdiam e jamais achavam o caminho de volta pra casa. Na verdade, toda aquela nevoa e energia havia sido um teste, e por ser um elfo da luz você passou. Surpresos os nobres aplaudiram o Abençoado pela Deusa. \n";
+  fTratarString(str3);
+  fCT();
+  char str4[] = " Desde então, no reino a paz voltou ao seu estado anterior, porém a desigualdade e o preconceito com a plebe ainda existia, embora diminuísse aos poucos.\n";
+  fTratarString(str4);
+  fCT();
+  SalvarJogo(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+  jogador->intAreaAtual = 30;
+    fChamarArea(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+}
+
+void areaDosCreditos(tPlayer *jogador, tItem *arrayDeItens, tMonstros *arrayDeMonstros, tHabilidades *arrayDeHabilidades, FILE *arqGameState)
+{
+  printf("PARABENS, FIM DE JOGO!");
+
+  printf("--- DESENVOLVIDO POR ---\n");
+  printf("Cristhian Cunha\nGabrielle Veríssimo\nGustavo\nJoão Roberto\nMario Assis\n");
+  printf("------------------------\n");
+
+  printf("Copyright C 2019 by Computer Center\n");
+  printf("All rights reserved");
+
+  fCT();
+  fMenuInicial(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+}
+
+//FUNÇÃO RESPONSÁVEL POR CHAMAR A ÁREA ATUAL
+int fChamarArea(tPlayer *jogador, tItem *arrayDeItens, tMonstros *arrayDeMonstros, tHabilidades *arrayDeHabilidades, FILE *arqGameState)
+{
+
+
+  // CHAMAR AREA CORRESPONDENTE AO VALOR DA VARIAVEL SALVA EM
+  // strAreaAtual DE tPlayer jogador
+  switch(jogador->intAreaAtual)
+  {
+
+  //CASO O VALOR DA VARIÁVEL strAreaAtual FOR 1 CHAMAR ESTA ÁREA
+  case 1:
+  area1(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+  break;
+
+  //CASO O VALOR DA VARIÁVEL strAreaAtual FOR 3 CHAMAR ESTA ÁREA
+  case 3:
+  BackToVarbel(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+  break;
+
+  //CASO O VALOR DA VARIÁVEL strAreaAtual FOR 4 CHAMAR ESTA ÁREA
+  case 4:
+  area1p1p1(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+  break;
+
+  case 5:
+  areaSaidaDoReino1(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+  break;
+
+  case 6:
+  area1p1p2(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+
+  break;
+  case 7:
+  area1p2p1(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+  break;
+
+  case 8:
+  area1p2p2(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+  break;
+
+  case 9:
+  area2p2p1(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+  break;
+
+  case 10:
+  areaSaidaDoReino2(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+  break;
+
+  case 11:
+  caminhoBosqueLamuriante(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+  break;
+
+  case 12:
+  areaVilarejoDeVarbelPrincipal(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+  break;
+
+  case 13:
+  entradaBosqueLamuriante(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+  break;
+
+  case 14:
+  areaEntradaVilarejoDeVarbel(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+  break;
+
+  case 15:
+  areaVilarejoDeVarbelLoop(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+  break;
+
+  case 16:
+  areaVilaCepticaPrincipal(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+  break;
+
+  case 17:
+  areaVilaEruditaPrincipal(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+  break;
+
+  case 18:
+  areaVilaCepticaConversa(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+  break;
+
+  case 19:
+  areaVilaCepticaCabana(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+  break;
+
+  case 20:
+  areaVilaEruditaConversa(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+  break;
+
+  case 21:
+  areaVilaEruditaCabana(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+  break;
+
+  case 22:
+  areaSaidaDoBosque(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+  break;
+
+  case 23:
+  areaCaminhoArdiloso(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+  break;
+
+  case 24:
+  areaRavinaEcoante(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+  break;
+
+  case 25:
+  areaEstradaDeGeffen(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+  break;
+
+  case 26:
+  areaFarmDeGeffen(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+  break;
+
+  case 27:
+  areaEntradaDeGeffen(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+  break;
+
+  case 28:
+  areaBossBattle(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+  break;
+
+  case 29:
+  areaConquistasYuno(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+  break;
+
+  case 30:
+  areaDosCreditos(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+  break;
+
+  default:
+  area1(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+  break;
+  }
+  return 0;
+}
+
+tPlayer fMelhorarAtributos(tPlayer *jogador, tItem *arrayDeItens, tMonstros *arrayDeMonstros, tHabilidades *arrayDeHabilidades, FILE *arqGameState)
+{
+  int atributoSelecionado= 9998;
+  int intEntradaJogador = 9999;
+  int intExperienciaFaltante = jogador->intExperienciaNecessaria - jogador->intExperiencia;
+  /*
+  atributosJogador[1] == Vitalidade
+  atributosJogador[2] == Força
+  atributosJogador[3] == Inteligencia
+  atributosJogador[4] == Destreza
+  atributosJogador[5] == Sorte
+  atributosJogador[6] == Percepção
+  atributosJogador[7] == PontosDeAtributoRestantes
+  */
+  printf("\n--------------------------------------------\n");
+  printf("Seus Atributos:\n");
+  printf("Level Atual: %i\n", jogador->intLevel);
+  printf("Experiência nescessária para o próximo level: %i\n", intExperienciaFaltante);
+  printf("Pontos de atributo restantes: %i\n", jogador->intAtributos[7]);
+  printf("[1] Vitalidade    = %i\n" , jogador->intAtributos[1]);
+  printf("[2] Força         = %i\n" , jogador->intAtributos[2]);
+  printf("[3] Inteligência  = %i\n" , jogador->intAtributos[3]);
+  printf("[4] Destreza      = %i\n" , jogador->intAtributos[4]);
+  printf("[5] Sorte         = %i\n" , jogador->intAtributos[5]);
+  printf("[6] Percepção     = %i\n" , jogador->intAtributos[6]);
+  printf("[0] Voltar\n");
+  printf("Selecione o atributo que deseja melhorar: ");
+  scanf("%i", &intEntradaJogador);
+  LimparTela(1);
+  if(intEntradaJogador == 0)
+    {
+
+    fChamarMenuPersonagem(jogador,  arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+    }
+  else if(jogador->intAtributos[7] > 0 && intEntradaJogador<7 && intEntradaJogador>0)
+  {
+    jogador->intAtributos[intEntradaJogador]++;
+    jogador->intAtributos[7]--;
+  }
+  else if(jogador->intAtributos[7] <=0 && intEntradaJogador<7 && intEntradaJogador>0)
+  {
+    printf("\nVocê não tem pontos de atributos suficientes.\n");
+  }
+  else
+  {
+    printf("\nComando inválido\n");
+  }
+  fAtualizarStatus(jogador, arrayDeItens);
+  fMelhorarAtributos(jogador,  arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+
+  return *jogador;
+}
+
+
+
+
+
+
+
+
+int fChamarMenuPersonagem(tPlayer *jogador, tItem *arrayDeItens, tMonstros *arrayDeMonstros,tHabilidades *arrayDeHabilidades, FILE *arqGameState)
+{
+  int passou = 99;
+  char strEntradaJogador;
+  printf("[1] Meu Personagem\n");
+  printf("[2] Salvar Jogo\n");
+  printf("[3] Voltar\n");
+  printf("[4] Sair para Menu Inicial\n");
+  printf("[0] Sair do jogo\n");
+  printf("Insira um comando: ");
+  __fpurge(stdin);
+  scanf("%c", &strEntradaJogador);
+  LimparTela(1);
+  if( isdigit(strEntradaJogador) != 0 )
+  {
+    //__fpurge(stdin);
+
+    if(strEntradaJogador == '1')
+    {
+      LimparTela(1);
+      printf("[1] Atributos\n");
+      printf("[2] Itens\n");
+      printf("[3] Vizualizar todos os status\n");
+      printf("[0] voltar\n");
+      printf("Insira um comando: ");
+      __fpurge(stdin);
+      scanf("%c", &strEntradaJogador);
+      while(isdigit(strEntradaJogador) == 0 )
+      {
+        printf("Comando inválido, não é um digito\n");
+        __fpurge(stdin);
+        printf("Insira um comando válido: ");
+        scanf("%c", &strEntradaJogador);
+      }
+      if(strEntradaJogador == '1')
+      {
+        fMelhorarAtributos(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+      }
+      if(strEntradaJogador == '2')
+      {
+        fAbrirInventario(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+      }
+      if(strEntradaJogador == '3')
+      {
+        fLerStatusEAtributos(jogador);
+        fChamarMenuPersonagem(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades,arqGameState);
+      }
+      else
+      {
+        printf("--- Comando inválido ---\n");
+        fChamarMenuPersonagem(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+      }
+
+    }
+    if(strEntradaJogador == '2')
+    {
+      SalvarJogo(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+      printf("Jogo salvo com sucesso.\n");
+      fChamarMenuPersonagem(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades,arqGameState);
+
+    }
+    if(strEntradaJogador == '3')
+    {
+      LimparTela(1);
+      fChamarArea(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+    }
+    if(strEntradaJogador == '4')
+    {
+      LimparTela(1);
+      printf("Todo progresso não salvo será perdido.\n");
+      printf("Deseja voltar ao menu inicial?\n");
+      printf("[1] Não\n");
+      printf("[0] Sim\n");
+      printf("Insira um comando: ");
+      strEntradaJogador = '9';
+      __fpurge(stdin);
+      scanf("%c", &strEntradaJogador);
+      if(isdigit(strEntradaJogador) != 0)
+      {
+        if(strEntradaJogador == '1')
+        {
+          LimparTela(1);
+          fChamarMenuPersonagem(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+        }
+        if(strEntradaJogador == '0')
+        {
+          LimparTela(1);
+          fMenuInicial(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+        }
+        else
+        {
+          LimparTela(1);
+          printf("--- Comando Inválido ---\n");
+          fChamarMenuPersonagem(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+        }
+      }
+    }
+    if(strEntradaJogador == '0')
+    {
+      LimparTela(1);
+      printf("Tem certeza que deseja sair?\n");
+      printf("[1] Não\n");
+      printf("[0] Sim\n");
+      printf("Insira um comando: ");
+      strEntradaJogador = '9';
+      __fpurge(stdin);
+      scanf("%c", &strEntradaJogador);
+      if(isdigit(strEntradaJogador) != 0)
+      {
+        if(strEntradaJogador == '1')
+        {
+          fChamarMenuPersonagem(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+        }
+        if(strEntradaJogador == '0')
+        {
+          LimparTela(1);
+          printf("[1] Salvar e sair\n");
+          printf("[2] Sair sem salvar\n");
+          printf("[3] Voltar\n");
+
+          __fpurge(stdin);
+          scanf("%c", &strEntradaJogador);
+          if(isdigit(strEntradaJogador) !=0)
+          {
+            if(strEntradaJogador == '1')
+            {
+              passou = SalvarJogo(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+              LimparTela(1);
+              if(passou == 1)
+              {
+                printf("Jogo salvo com sucesso.\n");
+                getchar();
+                exit(0);
+              }
+              else
+              {
+
+                printf("Houve um erro ao salvar o jogo\n");
+                fChamarMenuPersonagem(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+              }
+            }
+            if(strEntradaJogador == '2')
+            {
+              exit(0);
+            }
+            if(strEntradaJogador == '3')
+            {
+              fChamarMenuPersonagem(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+            }
+          }
+        }
+        else
+        {
+        LimparTela(1);
+        printf("--- Comando Inválido ---\n");
+        return 0;
+        }
+      }
+    }
+  }
+  else if (isdigit(strEntradaJogador) == 0)
+  {
+    LimparTela(1);
+    printf("--- Comando Inválido, não é digito---\n");
+
+    fChamarMenuPersonagem(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+  }
+  printf("Fim da função, houve um erro\n");
+  fChamarMenuPersonagem(jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+  return 1;
+}
+
+int main()
+{
+  FILE *arqGameState;
+  int plataforma = 1; // [1] Para Linux - [2] para Windows
+  int intEntradaJogador = 9876;
+  char strNome[17];
+  setlocale(LC_ALL, "Portuguese");
+  srand(time(NULL));
+
+  tPlayer jogador = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,{0,0,0,0,0,0,0,0}
+  ,1,0,0,0,0,0,0,0,0,0,0,0};
+
+  tItem arrayDeItens[13]; //SE MUDAR O NUMERO DE ITENS DESSA ARRAY, DEVE-SE MUDAR O CONTADOR DO WHILE NA FUNCAO fAbrirInventario()
+  tHabilidades arrayDeHabilidades[12];
+  tMonstros arrayDeMonstros[10];
+
+  strcpy(arrayDeItens[0].strNome, "Espada de Madeira");
+  arrayDeItens[0].enmRaridade = 1;
+  arrayDeItens[0].enmCategoria = 1;
+  arrayDeItens[0].bolAdquirido = true;
+  arrayDeItens[0].intAtaqueFisico = GerarValorAleatorio(10,13);
+  arrayDeItens[0].intArmadura = GerarValorAleatorio(1,3);
+  arrayDeItens[0].bolEquipado = false;
+  arrayDeItens[0].intMana = 0;
+  arrayDeItens[0].intVida = 0;
+  arrayDeItens[0].intChanceEvasao = 0;
+  arrayDeItens[0].intChanceCritico = 0;
+  arrayDeItens[0].intAtaqueMagico = 0;
+  arrayDeItens[0].intDanoFisicoExtra = 0;
+  arrayDeItens[0].intDanoMagicoExtra = 0;
+  arrayDeItens[0].intResistenciaMagica = 0;
+
+  strcpy(arrayDeItens[1].strNome, "Cota de Malha");
+  arrayDeItens[1].enmRaridade = 1;
+  arrayDeItens[1].enmCategoria = 2;
+  arrayDeItens[1].bolAdquirido = false;
+  arrayDeItens[1].intArmadura = GerarValorAleatorio(12,16);
+  arrayDeItens[1].intVida = GerarValorAleatorio(50,80);
+  arrayDeItens[1].bolEquipado = false;
+  arrayDeItens[1].intAtaqueFisico = 0;
+  arrayDeItens[1].intChanceEvasao = 0;
+  arrayDeItens[1].intChanceCritico = 0;
+  arrayDeItens[1].intDanoFisicoExtra = 0;
+  arrayDeItens[1].intDanoMagicoExtra = 0;
+  arrayDeItens[1].intAtaqueMagico = 0;
+  arrayDeItens[1].intMana = 0;
+  arrayDeItens[1].intResistenciaMagica = 0;
+
+  strcpy(arrayDeItens[2].strNome, "Espada de Ferro");
+  arrayDeItens[2].enmRaridade = 2;
+  arrayDeItens[2].enmCategoria = 1;
+  arrayDeItens[2].bolAdquirido = false;
+  arrayDeItens[2].intAtaqueFisico = GerarValorAleatorio(17,20);
+  arrayDeItens[2].intAtaqueMagico = 0;
+  arrayDeItens[2].intArmadura = GerarValorAleatorio(10,12);
+  arrayDeItens[2].intVida = 0;
+  arrayDeItens[2].bolEquipado = false;
+  arrayDeItens[2].intChanceEvasao = 0;
+  arrayDeItens[2].intChanceCritico = 0;
+  arrayDeItens[2].intResistenciaMagica = 0;
+  arrayDeItens[2].intDanoFisicoExtra = 0;
+  arrayDeItens[2].intDanoMagicoExtra = 0;
+
+  strcpy(arrayDeItens[3].strNome, "Adaga Afiada");
+  arrayDeItens[3].enmRaridade = 2;
+  arrayDeItens[3].enmCategoria = 1;
+  arrayDeItens[3].bolAdquirido = false;
+  arrayDeItens[3].intArmadura = 0;
+  arrayDeItens[3].intVida = 0;
+  arrayDeItens[3].intAtaqueFisico = GerarValorAleatorio(12,14);
+  arrayDeItens[3].intAtaqueMagico = 0;
+  arrayDeItens[3].intChanceEvasao = GerarValorAleatorio(9,12);
+  arrayDeItens[3].intChanceCritico = GerarValorAleatorio(4,6);
+  arrayDeItens[3].bolEquipado = false;
+  arrayDeItens[3].intDanoFisicoExtra = 0;
+  arrayDeItens[3].intDanoMagicoExtra = 0;
+  arrayDeItens[3].intResistenciaMagica = 0;
+  arrayDeItens[3].intMana = 0;
+
+  strcpy(arrayDeItens[4].strNome, "Brincos Elficos");
+  arrayDeItens[4].enmRaridade = 3;
+  arrayDeItens[4].enmCategoria = 3;
+  arrayDeItens[4].bolAdquirido = false;
+  arrayDeItens[4].intArmadura = GerarValorAleatorio(12,16);
+  arrayDeItens[4].intVida = GerarValorAleatorio(5,10);
+  arrayDeItens[4].bolEquipado = false;
+  arrayDeItens[4].intAtaqueFisico = 0;
+  arrayDeItens[4].intChanceEvasao = 0;
+  arrayDeItens[4].intChanceCritico = 0;
+  arrayDeItens[4].intAtaqueMagico = 0;
+  arrayDeItens[4].intDanoFisicoExtra = 0;
+  arrayDeItens[4].intDanoMagicoExtra = 0;
+  arrayDeItens[4].intResistenciaMagica = GerarValorAleatorio(12,16);
+
+  strcpy(arrayDeItens[5].strNome, "Luva Carmesim");
+  arrayDeItens[5].enmRaridade = 4;
+  arrayDeItens[5].enmCategoria = 3;
+  arrayDeItens[5].bolAdquirido = false;
+  arrayDeItens[5].intArmadura = 0;
+  arrayDeItens[5].intVida = 0;
+  arrayDeItens[5].bolEquipado = false;
+  arrayDeItens[5].intAtaqueFisico = 0;
+  arrayDeItens[5].intChanceEvasao = 0;
+  arrayDeItens[5].intChanceCritico = 0;
+  arrayDeItens[5].intAtaqueMagico = GerarValorAleatorio(20,25);
+  arrayDeItens[5].intDanoFisicoExtra = 0;
+  arrayDeItens[5].intDanoMagicoExtra = GerarValorAleatorio(5,10);
+  arrayDeItens[5].intResistenciaMagica = 0;
+
+  strcpy(arrayDeItens[6].strNome, "Anel de Raios");
+  arrayDeItens[6].enmRaridade = 4;
+  arrayDeItens[6].enmCategoria = 3;
+  arrayDeItens[6].bolAdquirido = false;
+  arrayDeItens[6].intArmadura = 0;
+  arrayDeItens[6].intVida = 0;
+  arrayDeItens[6].bolEquipado = false;
+  arrayDeItens[6].intAtaqueFisico = 0;
+  arrayDeItens[6].intChanceEvasao = 0;
+  arrayDeItens[6].intChanceCritico = 0;
+  arrayDeItens[6].intAtaqueMagico = GerarValorAleatorio(20,25);
+  arrayDeItens[6].intDanoFisicoExtra = 0;
+  arrayDeItens[6].intDanoMagicoExtra = GerarValorAleatorio(5,10);
+  arrayDeItens[6].intResistenciaMagica = 0;
+
+  strcpy(arrayDeItens[7].strNome, "Cajado de Cedro");
+  arrayDeItens[7].enmRaridade = 1;
+  arrayDeItens[7].enmCategoria = 1;
+  arrayDeItens[7].bolAdquirido = false;
+  arrayDeItens[7].intArmadura = 0;
+  arrayDeItens[7].intVida = 0;
+  arrayDeItens[7].bolEquipado = false;
+  arrayDeItens[7].intAtaqueFisico = 0;
+  arrayDeItens[7].intChanceEvasao = 0;
+  arrayDeItens[7].intChanceCritico = 0;
+  arrayDeItens[7].intAtaqueMagico = GerarValorAleatorio(7,10);
+  arrayDeItens[7].intDanoFisicoExtra = 0;
+  arrayDeItens[7].intDanoMagicoExtra = GerarValorAleatorio(2,5);
+  arrayDeItens[7].intResistenciaMagica = 0;
+
+  strcpy(arrayDeItens[8].strNome, "Armadura de Estanho");
+  arrayDeItens[8].enmRaridade = 1;
+  arrayDeItens[8].enmCategoria = 2;
+  arrayDeItens[8].bolAdquirido = false;
+  arrayDeItens[8].intArmadura = GerarValorAleatorio(12,15);
+  arrayDeItens[8].intVida = 0;
+  arrayDeItens[8].bolEquipado = false;
+  arrayDeItens[8].intAtaqueFisico = 0;
+  arrayDeItens[8].intChanceEvasao = GerarValorAleatorio(3,6);
+  arrayDeItens[8].intChanceCritico = 0;
+  arrayDeItens[8].intAtaqueMagico = 0;
+  arrayDeItens[8].intDanoFisicoExtra = 0;
+  arrayDeItens[8].intDanoMagicoExtra = 0;
+  arrayDeItens[8].intResistenciaMagica = 0;
+
+  strcpy(arrayDeItens[9].strNome, "Vestimenta da Rebelião do Caos");
+  arrayDeItens[9].enmRaridade = 5;
+  arrayDeItens[9].enmCategoria = 2;
+  arrayDeItens[9].bolAdquirido = false;
+  arrayDeItens[9].intArmadura = GerarValorAleatorio(20,25);
+  arrayDeItens[9].intVida = GerarValorAleatorio(15,20);
+  arrayDeItens[9].bolEquipado = false;
+  arrayDeItens[9].intAtaqueFisico = 0;
+  arrayDeItens[9].intChanceEvasao = 0;
+  arrayDeItens[9].intChanceCritico = 0;
+  arrayDeItens[9].intAtaqueMagico = 0;
+  arrayDeItens[9].intDanoFisicoExtra = 0;
+  arrayDeItens[9].intDanoMagicoExtra = 0;
+  arrayDeItens[9].intResistenciaMagica = GerarValorAleatorio(10,15);
+
+   strcpy(arrayDeItens[10].strNome, "Lâmina de Repulsão Sombria");
+  arrayDeItens[10].enmRaridade = 5;
+  arrayDeItens[10].enmCategoria = 1;
+  arrayDeItens[10].bolAdquirido = false;
+  arrayDeItens[10].intArmadura = 0;
+  arrayDeItens[10].intVida = 0;
+  arrayDeItens[10].bolEquipado = false;
+  arrayDeItens[10].intAtaqueFisico = GerarValorAleatorio(18,23);
+  arrayDeItens[10].intChanceEvasao = 0;
+  arrayDeItens[10].intChanceCritico = 0;
+  arrayDeItens[10].intAtaqueMagico = GerarValorAleatorio(18,23);
+  arrayDeItens[10].intDanoFisicoExtra = 0;
+  arrayDeItens[10].intDanoMagicoExtra = 0;
+  arrayDeItens[10].intResistenciaMagica = 0;
+
+strcpy(arrayDeItens[11].strNome, "Roupas de Couro");
+  arrayDeItens[11].enmRaridade = 1;
+  arrayDeItens[11].enmCategoria = 2;
+  arrayDeItens[11].bolAdquirido = true;
+  arrayDeItens[11].intArmadura = GerarValorAleatorio(5,10);
+  arrayDeItens[11].intVida = GerarValorAleatorio(20,40);
+  arrayDeItens[11].bolEquipado = false;
+  arrayDeItens[11].intAtaqueFisico = 0;
+  arrayDeItens[11].intChanceEvasao = 0;
+  arrayDeItens[11].intChanceCritico = 0;
+  arrayDeItens[11].intDanoFisicoExtra = 0;
+  arrayDeItens[11].intDanoMagicoExtra = 0;
+  arrayDeItens[11].intAtaqueMagico = 0;
+  arrayDeItens[11].intMana = 0;
+  arrayDeItens[11].intResistenciaMagica = 0;
+
+  strcpy(arrayDeItens[12].strNome, "Colar do Fascinio");
+  arrayDeItens[12].enmRaridade = 4;
+  arrayDeItens[12].enmCategoria = 3;
+  arrayDeItens[12].bolAdquirido = true;
+  arrayDeItens[12].intArmadura = 0;
+  arrayDeItens[12].intVida = 0;
+  arrayDeItens[12].bolEquipado = false;
+  arrayDeItens[12].intAtaqueFisico = 0;
+  arrayDeItens[12].intChanceEvasao = 0;
+  arrayDeItens[12].intChanceCritico = 0;
+  arrayDeItens[12].intAtaqueMagico = GerarValorAleatorio(8,12);
+  arrayDeItens[12].intDanoFisicoExtra = 0;
+  arrayDeItens[12].intDanoMagicoExtra = GerarValorAleatorio(1,5);
+  arrayDeItens[12].intResistenciaMagica = 0;
+
+
+
+//-------------------------------------------------------------------------------
+// LISTA DE HABLIDDADES
+  //FÍSICAS
+  arrayDeHabilidades[0].bolAdquirido = false;
+  strcpy(arrayDeHabilidades[0].strNome, "Perfuração");
+  arrayDeHabilidades[0].intVidaRestaurada = 0;
+  arrayDeHabilidades[0].intManaRestaurada = 0;
+  arrayDeHabilidades[0].intCustoMana = 5;
+  arrayDeHabilidades[0].intDanoFisico = 10;
+  arrayDeHabilidades[0].intDanoMagico = 0;
+  arrayDeHabilidades[0].intChanceDeAcerto = 100;
+
+  arrayDeHabilidades[1].bolAdquirido = false;
+  strcpy(arrayDeHabilidades[1].strNome, "Punição Ascendente");
+  arrayDeHabilidades[1].intVidaRestaurada = 0;
+  arrayDeHabilidades[1].intManaRestaurada = 0;
+  arrayDeHabilidades[1].intCustoMana = 15;
+  arrayDeHabilidades[1].intDanoFisico = 15;
+  arrayDeHabilidades[1].intDanoMagico = 0;
+  arrayDeHabilidades[1].intChanceDeAcerto = 100;
+
+  arrayDeHabilidades[2].bolAdquirido = false;
+  strcpy(arrayDeHabilidades[2].strNome, "Investida Fantasma");
+  arrayDeHabilidades[2].intVidaRestaurada = 0;
+  arrayDeHabilidades[2].intManaRestaurada = 0;
+  arrayDeHabilidades[2].intCustoMana = 20;
+  arrayDeHabilidades[2].intDanoFisico = 25;
+  arrayDeHabilidades[2].intDanoMagico = 0;
+  arrayDeHabilidades[2].intChanceDeAcerto = 100;
+
+  //Habilidade Dificil de conseguir//
+  arrayDeHabilidades[3].bolAdquirido = false;
+  strcpy(arrayDeHabilidades[3].strNome, "Lâmina Eterna");
+  arrayDeHabilidades[3].intVidaRestaurada = 0;
+  arrayDeHabilidades[3].intManaRestaurada = 0;
+  arrayDeHabilidades[3].intCustoMana = 30;
+  arrayDeHabilidades[3].intDanoFisico = 40;
+  arrayDeHabilidades[3].intDanoMagico = 0;
+  arrayDeHabilidades[3].intChanceDeAcerto = 75;
+
+  //FEITIÇOS DE OZ
+  arrayDeHabilidades[4].bolAdquirido = false;
+  strcpy(arrayDeHabilidades[4].strNome, "Agulha da Chama Escarlate");
+  arrayDeHabilidades[4].intVidaRestaurada = 0;
+  arrayDeHabilidades[4].intManaRestaurada = 0;
+  arrayDeHabilidades[4].intCustoMana = 10;
+  arrayDeHabilidades[4].intDanoFisico = 0;
+  arrayDeHabilidades[4].intDanoMagico = 10;
+  arrayDeHabilidades[4].intChanceDeAcerto = 100;
+
+  arrayDeHabilidades[5].bolAdquirido = false;
+  strcpy(arrayDeHabilidades[5].strNome, "Pequena Orbe Solar");
+  arrayDeHabilidades[5].intVidaRestaurada = 0;
+  arrayDeHabilidades[5].intManaRestaurada = 0;
+  arrayDeHabilidades[5].intCustoMana = 15;
+  arrayDeHabilidades[5].intDanoFisico = 0;
+  arrayDeHabilidades[5].intDanoMagico = 15;
+  arrayDeHabilidades[5].intChanceDeAcerto = 100;
+
+  arrayDeHabilidades[6].bolAdquirido = false;
+  strcpy(arrayDeHabilidades[6].strNome, "Garra Carmesim");
+  arrayDeHabilidades[6].intVidaRestaurada = 0;
+  arrayDeHabilidades[6].intManaRestaurada = 0;
+  arrayDeHabilidades[6].intCustoMana = 20;
+  arrayDeHabilidades[6].intDanoFisico = 0;
+  arrayDeHabilidades[6].intDanoMagico = 25;
+  arrayDeHabilidades[6].intChanceDeAcerto = 100;
+
+  //Habilidade Dificil de conseguir//
+  arrayDeHabilidades[7].bolAdquirido = false;
+  strcpy(arrayDeHabilidades[7].strNome, "Sol Cruel");
+  arrayDeHabilidades[7].intVidaRestaurada = 0;
+  arrayDeHabilidades[7].intManaRestaurada = 0;
+  arrayDeHabilidades[7].intCustoMana = 30;
+  arrayDeHabilidades[7].intDanoFisico = 0;
+  arrayDeHabilidades[7].intDanoMagico = 50;
+  arrayDeHabilidades[7].intChanceDeAcerto = 75;
+
+  //FEITIÇOS DO ETER
+  arrayDeHabilidades[8].bolAdquirido = false;
+  strcpy(arrayDeHabilidades[8].strNome, "Alabarda Celetial");
+  arrayDeHabilidades[8].intVidaRestaurada = 0;
+  arrayDeHabilidades[8].intManaRestaurada = 0;
+  arrayDeHabilidades[8].intCustoMana = 10;
+  arrayDeHabilidades[8].intDanoFisico = 0;
+  arrayDeHabilidades[8].intDanoMagico = 10;
+  arrayDeHabilidades[8].intChanceDeAcerto = 100;
+
+  arrayDeHabilidades[9].bolAdquirido = false;
+  strcpy(arrayDeHabilidades[9].strNome, "Faina Eletrica");
+  arrayDeHabilidades[9].intVidaRestaurada = 0;
+  arrayDeHabilidades[9].intManaRestaurada = 0;
+  arrayDeHabilidades[9].intCustoMana = 15;
+  arrayDeHabilidades[9].intDanoFisico = 0;
+  arrayDeHabilidades[9].intDanoMagico = 15;
+  arrayDeHabilidades[9].intChanceDeAcerto = 105;
+
+  arrayDeHabilidades[10].bolAdquirido = false;
+  strcpy(arrayDeHabilidades[10].strNome, "Saraiva de Lâminas Relâmpago");
+  arrayDeHabilidades[10].intVidaRestaurada = 0;
+  arrayDeHabilidades[10].intManaRestaurada = 0;
+  arrayDeHabilidades[10].intCustoMana = 20;
+  arrayDeHabilidades[10].intDanoFisico = 0;
+  arrayDeHabilidades[10].intDanoMagico = 25;
+  arrayDeHabilidades[10].intChanceDeAcerto = 115;
+
+  arrayDeHabilidades[11].bolAdquirido = false;
+  strcpy(arrayDeHabilidades[11].strNome, "Mergulho Espiritual : Castigo Divino");
+  arrayDeHabilidades[11].intVidaRestaurada = 0;
+  arrayDeHabilidades[11].intManaRestaurada = 0;
+  arrayDeHabilidades[11].intCustoMana = 30;
+  arrayDeHabilidades[11].intDanoFisico = 0;
+  arrayDeHabilidades[11].intDanoMagico = 40;
+  arrayDeHabilidades[11].intChanceDeAcerto = 110;
+
+
+
+//-----------------------------------------------------------------------------
+// LISTA DE MONSTROS
+
+  strcpy(arrayDeMonstros[0].strNome, "Javali Selvagem");
+  arrayDeMonstros[0].tipo = 1;
+  arrayDeMonstros[0].regiao = 1;
+  arrayDeMonstros[0].intVida = GerarValorAleatorio(80,120);
+  arrayDeMonstros[0].intMana = 100;
+  arrayDeMonstros[0].intAtaqueFisico = 15;
+  arrayDeMonstros[0].intAtaqueMagico = 12;
+  arrayDeMonstros[0].intChanceEvasao = 0;
+  arrayDeMonstros[0].intChanceCritico = 10;
+  arrayDeMonstros[0].intArmadura = 15;
+  arrayDeMonstros[0].intResistenciaMagica = 0;
+  arrayDeMonstros[0].intDanoFisicoExtra = 3;
+  arrayDeMonstros[0].intDanoMagicoExtra = 5;
+  arrayDeMonstros[0].intReducaoDanoFisicoExtra = 0;
+  arrayDeMonstros[0].intExperienciaMorte = GerarValorAleatorio(200,251);
+
+  strcpy(arrayDeMonstros[1].strNome, "Minotauro de Petricita");
+  arrayDeMonstros[1].tipo= 1;
+  arrayDeMonstros[1].regiao= 1;
+  arrayDeMonstros[1].intVida = GerarValorAleatorio(250,311);
+  arrayDeMonstros[1].intMana = 100;
+  arrayDeMonstros[1].intAtaqueFisico = 25;
+  arrayDeMonstros[1].intAtaqueMagico = 25;
+  arrayDeMonstros[1].intChanceEvasao = 0;
+  arrayDeMonstros[1].intChanceCritico = 0;
+  arrayDeMonstros[1].intArmadura = 25;
+  arrayDeMonstros[1].intResistenciaMagica = 30;
+  arrayDeMonstros[1].intDanoFisicoExtra = 5;
+  arrayDeMonstros[1].intDanoMagicoExtra = 5;
+  arrayDeMonstros[1].intReducaoDanoFisicoExtra = 10;
+  arrayDeMonstros[1].intExperienciaMorte = GerarValorAleatorio(500,601);
+
+  strcpy(arrayDeMonstros[2].strNome, "Caranguejo Mutante");
+  arrayDeMonstros[2].tipo= 1;
+  arrayDeMonstros[2].regiao= 1;
+  arrayDeMonstros[2].intVida = GerarValorAleatorio(100,151);
+  arrayDeMonstros[2].intMana = 100;
+  arrayDeMonstros[2].intAtaqueFisico = 5;
+  arrayDeMonstros[2].intAtaqueMagico = 5;
+  arrayDeMonstros[2].intChanceEvasao = 5;
+  arrayDeMonstros[2].intChanceCritico = 40;
+  arrayDeMonstros[2].intArmadura = 25;
+  arrayDeMonstros[2].intResistenciaMagica = 20;
+  arrayDeMonstros[2].intDanoFisicoExtra = 0;
+  arrayDeMonstros[2].intDanoMagicoExtra = 0;
+  arrayDeMonstros[2].intReducaoDanoFisicoExtra = 5;
+  arrayDeMonstros[2].intExperienciaMorte = GerarValorAleatorio(130,201);
+
+  strcpy(arrayDeMonstros[3].strNome, "Orc Arqueiro");
+  arrayDeMonstros[3].tipo= 1;
+  arrayDeMonstros[3].regiao= 1;
+  arrayDeMonstros[3].intVida = 60;
+  arrayDeMonstros[3].intMana = 100;
+  arrayDeMonstros[3].intAtaqueFisico = 25;
+  arrayDeMonstros[3].intAtaqueMagico = 10;
+  arrayDeMonstros[3].intChanceEvasao = 35;
+  arrayDeMonstros[3].intChanceCritico = 15;
+  arrayDeMonstros[3].intArmadura = 5;
+  arrayDeMonstros[3].intResistenciaMagica = 5;
+  arrayDeMonstros[3].intDanoFisicoExtra = 15;
+  arrayDeMonstros[3].intDanoMagicoExtra = 2;
+  arrayDeMonstros[3].intReducaoDanoFisicoExtra = 2;
+  arrayDeMonstros[3].intExperienciaMorte = GerarValorAleatorio(250,301);
+
+  strcpy(arrayDeMonstros[4].strNome, "Orc Guerreiro");
+  arrayDeMonstros[4].tipo= 1;
+  arrayDeMonstros[4].regiao= 1;
+  arrayDeMonstros[4].intVida = 100;
+  arrayDeMonstros[4].intMana = 80;
+  arrayDeMonstros[4].intAtaqueFisico = 12;
+  arrayDeMonstros[4].intAtaqueMagico = 13;
+  arrayDeMonstros[4].intChanceEvasao = 10;
+  arrayDeMonstros[4].intChanceCritico = 15;
+  arrayDeMonstros[4].intArmadura = 35;
+  arrayDeMonstros[4].intResistenciaMagica = 15;
+  arrayDeMonstros[4].intDanoFisicoExtra = 10;
+  arrayDeMonstros[4].intDanoMagicoExtra = 0;
+  arrayDeMonstros[4].intReducaoDanoFisicoExtra = 5;
+  arrayDeMonstros[4].intExperienciaMorte = GerarValorAleatorio(250,276);
+
+  strcpy(arrayDeMonstros[5].strNome, "Troll Encouraçado");
+  arrayDeMonstros[5].tipo = 1;
+  arrayDeMonstros[5].regiao = 1;
+  arrayDeMonstros[5].intVida = GerarValorAleatorio(150,226);
+  arrayDeMonstros[5].intMana = 100;
+  arrayDeMonstros[5].intAtaqueFisico = 15;
+  arrayDeMonstros[5].intAtaqueMagico = 10;
+  arrayDeMonstros[5].intChanceEvasao = 15;
+  arrayDeMonstros[5].intChanceCritico = 20;
+  arrayDeMonstros[5].intArmadura = 15;
+  arrayDeMonstros[5].intResistenciaMagica = 20;
+  arrayDeMonstros[5].intDanoFisicoExtra = 5;
+  arrayDeMonstros[5].intDanoMagicoExtra = 5;
+  arrayDeMonstros[5].intReducaoDanoFisicoExtra = 10;
+  arrayDeMonstros[5].intExperienciaMorte = 300;
+
+  strcpy(arrayDeMonstros[6].strNome, "Lorde Orc Gar'Tul");
+  arrayDeMonstros[6].tipo = 1;
+  arrayDeMonstros[6].regiao = 3;
+  arrayDeMonstros[6].intVida = GerarValorAleatorio(300,400);
+  arrayDeMonstros[6].intMana = 100;
+  arrayDeMonstros[6].intAtaqueFisico = 25;
+  arrayDeMonstros[6].intAtaqueMagico = 30;
+  arrayDeMonstros[6].intChanceEvasao = 25;
+  arrayDeMonstros[6].intChanceCritico = 10;
+  arrayDeMonstros[6].intArmadura = 30;
+  arrayDeMonstros[6].intResistenciaMagica = 20;
+  arrayDeMonstros[6].intDanoFisicoExtra = 5;
+  arrayDeMonstros[6].intDanoMagicoExtra = 5;
+  arrayDeMonstros[6].intReducaoDanoFisicoExtra = 3;
+  arrayDeMonstros[6].intExperienciaMorte = 300;
+
+  strcpy(arrayDeMonstros[7].strNome, "Goblin Perverso");
+  arrayDeMonstros[7].tipo = 1;
+  arrayDeMonstros[7].regiao = 1;
+  arrayDeMonstros[7].intVida = GerarValorAleatorio(145,189);
+  arrayDeMonstros[7].intMana = 124;
+  arrayDeMonstros[7].intAtaqueFisico = 12;
+  arrayDeMonstros[7].intAtaqueMagico = 12;
+  arrayDeMonstros[7].intChanceEvasao = 35;
+  arrayDeMonstros[7].intChanceCritico = 35;
+  arrayDeMonstros[7].intArmadura = 5;
+  arrayDeMonstros[7].intResistenciaMagica = 5;
+  arrayDeMonstros[7].intDanoFisicoExtra = 15;
+  arrayDeMonstros[7].intDanoMagicoExtra = 0;
+  arrayDeMonstros[7].intReducaoDanoFisicoExtra = 2;
+  arrayDeMonstros[7].intExperienciaMorte = GerarValorAleatorio(250,350);
+
+  strcpy(arrayDeMonstros[8].strNome, "Ogro Violento");
+  arrayDeMonstros[8].tipo= 1;
+  arrayDeMonstros[8].regiao= 1;
+  arrayDeMonstros[8].intVida = GerarValorAleatorio(130,171);
+  arrayDeMonstros[8].intMana = 100;
+  arrayDeMonstros[8].intAtaqueFisico = 15;
+  arrayDeMonstros[8].intAtaqueMagico = 15;
+  arrayDeMonstros[8].intChanceEvasao = 15;
+  arrayDeMonstros[8].intChanceCritico = 15;
+  arrayDeMonstros[8].intArmadura = 20;
+  arrayDeMonstros[8].intResistenciaMagica = 20;
+  arrayDeMonstros[8].intDanoFisicoExtra = 13;
+  arrayDeMonstros[8].intDanoMagicoExtra = 13;
+  arrayDeMonstros[8].intReducaoDanoFisicoExtra = 12;
+  arrayDeMonstros[8].intExperienciaMorte = GerarValorAleatorio(230,400);
+
+  //--------------------------------------------------------------------------
+  fMenuInicial(&jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+  SalvarJogo(&jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+  getchar();
+  fLerStatusEAtributos(&jogador);
+  fChamarArea(&jogador,  arrayDeItens, arrayDeMonstros, arrayDeHabilidades,arqGameState);
+  SalvarJogo(&jogador, arrayDeItens, arrayDeMonstros, arrayDeHabilidades, arqGameState);
+  return 0;
+}
